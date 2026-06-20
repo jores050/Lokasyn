@@ -1,0 +1,231 @@
+<!-- LocaSyn — Publier une annonce -->
+<div class="navbar">
+  <button class="navbar-back" onclick="history.back()"><i data-lucide="arrow-left" class="icon"></i></button>
+  <div class="navbar-title">Publier une annonce</div>
+</div>
+
+<!-- Stepper -->
+<div class="stepper" id="stepper">
+  <div class="stepper-step">
+    <div class="stepper-dot active" id="dot-1">1</div>
+    <div class="stepper-line" id="line-1"></div>
+  </div>
+  <div class="stepper-step">
+    <div class="stepper-dot" id="dot-2">2</div>
+    <div class="stepper-line" id="line-2"></div>
+  </div>
+  <div class="stepper-step">
+    <div class="stepper-dot" id="dot-3">3</div>
+    <div class="stepper-line" id="line-3"></div>
+  </div>
+  <div class="stepper-step">
+    <div class="stepper-dot" id="dot-4">4</div>
+    <div class="stepper-line" id="line-4"></div>
+  </div>
+  <div class="stepper-step">
+    <div class="stepper-dot" id="dot-5">5</div>
+    <div class="stepper-line" style="display:none"></div>
+  </div>
+</div>
+
+<!-- Étape 1 : Type de logement -->
+<div class="publish-step active" id="step-1">
+  <div style="padding:0 16px 16px">
+    <h3 style="margin-bottom:4px">Type de logement</h3>
+    <p style="font-size:0.875rem;color:var(--ink-light)">Sélectionnez le type de bien que vous mettez en location</p>
+  </div>
+  <div class="type-grid">
+    <div class="type-option" data-type="chambre" onclick="selectType(this)"><span class="type-option-icon"><i data-lucide="bed-single" class="icon icon--lg"></i></span><span class="type-option-label">Chambre</span></div>
+    <div class="type-option" data-type="studio" onclick="selectType(this)"><span class="type-option-icon"><i data-lucide="home" class="icon icon--lg"></i></span><span class="type-option-label">Studio</span></div>
+    <div class="type-option" data-type="f2" onclick="selectType(this)"><span class="type-option-icon"><i data-lucide="building-2" class="icon icon--lg"></i></span><span class="type-option-label">F2</span></div>
+    <div class="type-option" data-type="f3" onclick="selectType(this)"><span class="type-option-icon"><i data-lucide="building" class="icon icon--lg"></i></span><span class="type-option-label">F3</span></div>
+    <div class="type-option" data-type="f4plus" onclick="selectType(this)"><span class="type-option-icon"><i data-lucide="building" class="icon icon--lg"></i></span><span class="type-option-label">F4+</span></div>
+    <div class="type-option" data-type="villa" onclick="selectType(this)"><span class="type-option-icon"><i data-lucide="landmark" class="icon icon--lg"></i></span><span class="type-option-label">Villa</span></div>
+    <div class="type-option" data-type="local" onclick="selectType(this)"><span class="type-option-icon"><i data-lucide="store" class="icon icon--lg"></i></span><span class="type-option-label">Local</span></div>
+  </div>
+  <span class="form-error show" id="err-type" style="padding:0 16px;display:none">Sélectionnez un type de logement</span>
+  <div style="padding:16px"><button class="btn btn-primary btn-full" onclick="goStep(2)">Suivant <i data-lucide="chevron-right" class="icon icon--sm"></i></button></div>
+</div>
+
+<!-- Étape 2 : Localisation -->
+<div class="publish-step" id="step-2">
+  <div style="padding:0 16px 16px">
+    <h3 style="margin-bottom:4px">Localisation</h3>
+    <p style="font-size:0.875rem;color:var(--ink-light)">Indiquez où se trouve votre logement</p>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:14px;padding:0 16px">
+    <div class="form-group">
+      <label class="form-label">Ville</label>
+      <select class="form-select" id="pub-ville" onchange="updateQuartiers()">
+        <option value="Cotonou">Cotonou</option>
+        <option value="Abomey-Calavi">Abomey-Calavi</option>
+        <option value="Porto-Novo">Porto-Novo</option>
+        <option value="Parakou">Parakou</option>
+        <option value="Autre">Autre</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <button type="button" class="btn-geoloc" id="btnGeoloc">
+        <i data-lucide="map-pin" class="icon icon--sm"></i> Utiliser ma position actuelle
+      </button>
+      <div id="geolocStatus" style="display:none;font-size:0.8125rem;color:var(--ink-mid);margin-top:6px"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Quartier</label>
+      <input class="form-input" type="text" id="pub-quartier" placeholder="Ex: Akpakpa, Godomey..." list="quartiers-list" required>
+      <datalist id="quartiers-list"></datalist>
+      <span class="form-error" id="err-quartier"></span>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Adresse complète (optionnel)</label>
+      <input class="form-input" type="text" id="pub-adresse" placeholder="Rue, numéro...">
+    </div>
+    <div class="form-group">
+      <label class="form-label" style="margin-bottom:8px">Localisation sur la carte</label>
+      <p style="font-size:0.8125rem;color:var(--ink-light);margin-bottom:8px">Cliquez sur la carte pour placer votre logement</p>
+      <div id="publish-map" style="height:200px;border-radius:var(--radius);overflow:hidden;border:1.5px solid var(--border-mid)"></div>
+      <input type="hidden" id="pub-lat">
+      <input type="hidden" id="pub-lng">
+    </div>
+  </div>
+  <div style="padding:16px;display:flex;gap:10px">
+    <button class="btn btn-secondary" style="flex:1" onclick="goStep(1)"><i data-lucide="arrow-left" class="icon icon--sm"></i> Retour</button>
+    <button class="btn btn-primary" style="flex:1" onclick="goStep(3)">Suivant <i data-lucide="chevron-right" class="icon icon--sm"></i></button>
+  </div>
+</div>
+
+<!-- Étape 3 : Prix & conditions -->
+<div class="publish-step" id="step-3">
+  <div style="padding:0 16px 16px">
+    <h3 style="margin-bottom:4px">Prix & conditions</h3>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:14px;padding:0 16px">
+    <div class="form-group">
+      <label class="form-label">Loyer mensuel (FCFA)</label>
+      <input class="form-input" type="number" id="pub-loyer" placeholder="Ex: 25000" min="5000" required>
+      <span class="form-error" id="err-loyer"></span>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Caution</label>
+      <select class="form-select" id="pub-caution">
+        <option value="1">1 mois de loyer</option>
+        <option value="2" selected>2 mois de loyer</option>
+        <option value="3">3 mois de loyer</option>
+        <option value="6">6 mois de loyer</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Type de bail</label>
+      <select class="form-select" id="pub-bail">
+        <option value="mensuel">Mensuel</option>
+        <option value="annuel">Annuel</option>
+        <option value="etudiant">Étudiant</option>
+        <option value="court_terme">Court terme</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Surface (m²) — optionnel</label>
+      <input class="form-input" type="number" id="pub-surface" placeholder="Ex: 25">
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:14px">
+      <div class="toggle-wrapper">
+        <span class="toggle-label">Logement meublé</span>
+        <label class="toggle"><input type="checkbox" id="pub-meuble"><span class="toggle-track"></span></label>
+      </div>
+      <div class="toggle-wrapper">
+        <span class="toggle-label">Eau incluse dans le loyer</span>
+        <label class="toggle"><input type="checkbox" id="pub-eau"><span class="toggle-track"></span></label>
+      </div>
+      <div class="toggle-wrapper">
+        <span class="toggle-label">Électricité incluse dans le loyer</span>
+        <label class="toggle"><input type="checkbox" id="pub-elec"><span class="toggle-track"></span></label>
+      </div>
+      <div class="toggle-wrapper">
+        <span class="toggle-label">Logement étudiant OK <i data-lucide="graduation-cap" class="icon icon--sm"></i></span>
+        <label class="toggle"><input type="checkbox" id="pub-etudiant"><span class="toggle-track"></span></label>
+      </div>
+    </div>
+    <div>
+      <div style="font-weight:500;font-size:0.875rem;color:var(--ink-mid);margin-bottom:10px">Équipements</div>
+      <div class="equipements-grid" id="equipements-grid">
+        <div class="equipement-item" data-eq="Climatisation" onclick="toggleEquip(this)"><span class="equipement-check"></span><i data-lucide="snowflake" class="icon icon--sm"></i> Clim</div>
+        <div class="equipement-item" data-eq="WC privatif" onclick="toggleEquip(this)"><span class="equipement-check"></span><i data-lucide="toilet" class="icon icon--sm"></i> WC privatif</div>
+        <div class="equipement-item" data-eq="Douche chaude" onclick="toggleEquip(this)"><span class="equipement-check"></span><i data-lucide="shower-head" class="icon icon--sm"></i> Douche chaude</div>
+        <div class="equipement-item" data-eq="Cuisine" onclick="toggleEquip(this)"><span class="equipement-check"></span><i data-lucide="utensils" class="icon icon--sm"></i> Cuisine</div>
+        <div class="equipement-item" data-eq="Gardien" onclick="toggleEquip(this)"><span class="equipement-check"></span><i data-lucide="shield" class="icon icon--sm"></i> Gardien</div>
+        <div class="equipement-item" data-eq="Parking moto" onclick="toggleEquip(this)"><span class="equipement-check"></span><i data-lucide="bike" class="icon icon--sm"></i> Parking moto</div>
+        <div class="equipement-item" data-eq="Parking voiture" onclick="toggleEquip(this)"><span class="equipement-check"></span><i data-lucide="car" class="icon icon--sm"></i> Parking voiture</div>
+        <div class="equipement-item" data-eq="Internet" onclick="toggleEquip(this)"><span class="equipement-check"></span><i data-lucide="wifi" class="icon icon--sm"></i> Internet</div>
+        <div class="equipement-item" data-eq="Clôture" onclick="toggleEquip(this)"><span class="equipement-check"></span><i data-lucide="fence" class="icon icon--sm"></i> Clôture</div>
+      </div>
+    </div>
+  </div>
+  <div style="padding:16px;display:flex;gap:10px">
+    <button class="btn btn-secondary" style="flex:1" onclick="goStep(2)"><i data-lucide="arrow-left" class="icon icon--sm"></i> Retour</button>
+    <button class="btn btn-primary" style="flex:1" onclick="goStep(4)">Suivant <i data-lucide="chevron-right" class="icon icon--sm"></i></button>
+  </div>
+</div>
+
+<!-- Étape 4 : Photos -->
+<div class="publish-step" id="step-4">
+  <div style="padding:0 16px 16px">
+    <h3 style="margin-bottom:4px">Photos</h3>
+    <p style="font-size:0.875rem;color:var(--ink-light)">Minimum 3 photos, maximum 10. Une belle galerie attire plus de locataires !</p>
+  </div>
+  <div class="photo-grid" id="photo-preview"></div>
+  <div style="padding:16px">
+    <input type="file" id="photo-input" accept="image/*" multiple style="display:none" onchange="handlePhotos(this)">
+    <button class="btn btn-secondary btn-full" onclick="document.getElementById('photo-input').click()">
+      <i data-lucide="camera" class="icon icon--sm"></i> Ajouter des photos
+    </button>
+    <span class="form-error" id="err-photos" style="margin-top:8px"></span>
+  </div>
+  <div style="padding:16px">
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-textarea" id="pub-desc" placeholder="Décrivez votre logement : luminosité, proximité des transports, ambiance du quartier..." rows="4"></textarea>
+    </div>
+  </div>
+  <div style="padding:0 16px 16px;display:flex;gap:10px">
+    <button class="btn btn-secondary" style="flex:1" onclick="goStep(3)"><i data-lucide="arrow-left" class="icon icon--sm"></i> Retour</button>
+    <button class="btn btn-primary" style="flex:1" onclick="goStep(5)">Suivant <i data-lucide="chevron-right" class="icon icon--sm"></i></button>
+  </div>
+</div>
+
+<!-- Étape 5 : Boost & soumission -->
+<div class="publish-step" id="step-5">
+  <div style="padding:0 16px 16px">
+    <h3 style="margin-bottom:4px">Visibilité & publication</h3>
+    <p style="font-size:0.875rem;color:var(--ink-light)">Vérifiez votre annonce avant de la soumettre</p>
+  </div>
+
+  <!-- Récap -->
+  <div style="background:var(--white);border-radius:var(--radius);margin:0 16px 16px;padding:16px;box-shadow:var(--shadow-sm)" id="recap-annonce"></div>
+
+  <!-- Option boost -->
+  <div style="background:var(--amber-light);border-radius:var(--radius);margin:0 16px 16px;padding:16px;border:1.5px solid var(--amber)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div>
+        <div style="font-weight:600;color:var(--ink);display:flex;align-items:center;gap:6px"><i data-lucide="zap" class="icon icon--sm"></i> Booster mon annonce</div>
+        <div style="font-size:0.8125rem;color:var(--ink-mid)">Apparaître en priorité pendant 7 jours</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-weight:700;color:var(--amber)">2 000 FCFA</div>
+        <label class="toggle" style="margin-top:4px"><input type="checkbox" id="pub-boost"><span class="toggle-track"></span></label>
+      </div>
+    </div>
+    <p style="font-size:0.75rem;color:var(--amber);display:flex;align-items:center;gap:4px"><i data-lucide="lightbulb" class="icon icon--sm"></i> Les annonces boostées reçoivent 5× plus de contacts</p>
+  </div>
+
+  <div style="padding:0 16px 16px;display:flex;gap:10px">
+    <button class="btn btn-secondary" style="flex:1" onclick="goStep(4)"><i data-lucide="arrow-left" class="icon icon--sm"></i> Retour</button>
+    <button class="btn btn-primary" style="flex:1" id="btn-publier" onclick="publierAnnonce()">Publier</button>
+  </div>
+
+  <div class="bottom-nav-spacer" style="height:calc(var(--bottom-nav-h) + 16px)"></div>
+</div>
+
+<script type="module">
+  import { init } from '/assets/js/modules/publish.js';
+  init();
+</script>

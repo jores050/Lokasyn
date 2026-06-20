@@ -1,0 +1,10 @@
+<!-- LocaSyn — Détail Logement -->
+<div id="listing-detail-root">
+  <div style="display:flex;justify-content:center;padding:60px"><div class="spinner spinner-lg"></div></div>
+</div>
+
+<script type="module">
+  import { init } from '/assets/js/modules/listing.js';
+  const params = window.__routeParams || {};
+  init(params);
+</script>

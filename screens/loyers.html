@@ -1,0 +1,15 @@
+<!-- LocaSyn — Suivi des loyers -->
+<div class="navbar">
+  <button class="navbar-back" onclick="history.back()">←</button>
+  <div class="navbar-title">Suivi des loyers</div>
+  <button id="btn-export" style="font-size:0.875rem;font-weight:600;color:var(--green);background:none;border:none;cursor:pointer">Export</button>
+</div>
+
+<div id="loyers-root">
+  <div style="display:flex;justify-content:center;padding:60px"><div class="spinner spinner-lg"></div></div>
+</div>
+
+<script type="module">
+  import { init } from '/assets/js/modules/loyers.js';
+  init();
+</script>

@@ -1,0 +1,101 @@
+<!-- LocaSyn — Onboarding -->
+<div class="splash-screen" id="splash">
+  <div class="splash-logo">Loka<span>syn</span></div>
+  <div class="splash-tagline">Trouvez, louez, gérez en toute confiance</div>
+</div>
+
+<div id="onboarding-main" style="display:none;flex-direction:column;min-height:100vh;">
+  <div class="onboarding-slides" id="slides-container">
+    <div class="onboarding-slides-track" id="slides-track">
+
+      <div class="onboarding-slide">
+        <div class="onboarding-slide-emoji"><i data-lucide="home" class="icon--xl"></i></div>
+        <h2>Des milliers de logements vérifiés</h2>
+        <p>Chambres, studios, appartements et villas à Cotonou, Calavi et partout au Bénin.</p>
+      </div>
+
+      <div class="onboarding-slide">
+        <div class="onboarding-slide-emoji"><i data-lucide="message-circle" class="icon--xl"></i></div>
+        <h2>Discutez directement, sans intermédiaire</h2>
+        <p>Contactez le bailleur, planifiez vos visites et négociez en toute sécurité depuis l'app.</p>
+      </div>
+
+      <div class="onboarding-slide">
+        <div class="onboarding-slide-emoji"><i data-lucide="smartphone" class="icon--xl"></i></div>
+        <h2>Paiement sécurisé via Mobile Money</h2>
+        <p>Payez votre caution et votre loyer via MTN MoMo ou Moov Money. Vos fonds sont protégés.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="onboarding-dots" id="onboarding-dots">
+    <div class="onboarding-dot active"></div>
+    <div class="onboarding-dot"></div>
+    <div class="onboarding-dot"></div>
+  </div>
+
+  <div class="onboarding-footer">
+    <button class="btn btn-primary btn-full" id="btn-start">Commencer</button>
+    <button class="btn btn-ghost btn-full" id="btn-explore" style="color:var(--ink-mid)">Explorer sans compte</button>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // Afficher splash 2 secondes puis onboarding
+    const splash = document.getElementById('splash');
+    const main = document.getElementById('onboarding-main');
+
+    setTimeout(() => {
+      splash.classList.add('hidden');
+      setTimeout(() => {
+        splash.style.display = 'none';
+        main.style.display = 'flex';
+      }, 500);
+    }, 2000);
+
+    // Swipe slider
+    const track = document.getElementById('slides-track');
+    const dots = document.querySelectorAll('.onboarding-dot');
+    let current = 0;
+    let startX = 0;
+    let isDragging = false;
+
+    function goTo(idx) {
+      current = Math.max(0, Math.min(2, idx));
+      track.style.transform = `translateX(-${current * 100}%)`;
+      dots.forEach((d, i) => d.classList.toggle('active', i === current));
+    }
+
+    track.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+      isDragging = true;
+    }, { passive: true });
+
+    track.addEventListener('touchend', e => {
+      if (!isDragging) return;
+      const diff = startX - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 40) goTo(diff > 0 ? current + 1 : current - 1);
+      isDragging = false;
+    });
+
+    // Bouton Commencer → auth
+    document.getElementById('btn-start').addEventListener('click', () => {
+      if (current < 2) {
+        goTo(current + 1);
+      } else {
+        localStorage.setItem('locasyn_onboarded', 'true');
+        window.location.hash = '#auth';
+      }
+    });
+
+    // Explorer sans compte
+    document.getElementById('btn-explore').addEventListener('click', () => {
+      localStorage.setItem('locasyn_onboarded', 'true');
+      window.location.hash = '#home';
+    });
+
+  })();
+</script>
+

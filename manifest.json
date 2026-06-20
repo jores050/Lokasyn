@@ -1,0 +1,25 @@
+{
+  "name": "LocaSyn — Immobilier Bénin",
+  "short_name": "LocaSyn",
+  "description": "Trouvez, louez et gérez votre logement au Bénin en toute confiance",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F5F0E8",
+  "theme_color": "#1B6B4A",
+  "orientation": "portrait",
+  "lang": "fr",
+  "categories": ["lifestyle", "finance"],
+  "icons": [],
+  "shortcuts": [
+    {
+      "name": "Rechercher",
+      "short_name": "Recherche",
+      "url": "/#search"
+    },
+    {
+      "name": "Publier une annonce",
+      "short_name": "Publier",
+      "url": "/#publish"
+    }
+  ]
+}

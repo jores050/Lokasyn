@@ -1,0 +1,267 @@
+<!-- LocaSyn — Authentification -->
+<div class="auth-screen">
+  <div class="auth-header">
+    <div class="auth-logo">Loka<span>syn</span></div>
+    <div class="auth-subtitle" id="auth-subtitle">Connectez-vous à votre compte</div>
+  </div>
+
+  <!-- VUE A : Choix du rôle -->
+  <div class="auth-view active" id="view-role">
+    <h3 style="margin-bottom:16px;font-family:var(--font-body);font-size:1rem;color:var(--ink-mid)">Je suis...</h3>
+    <div class="role-cards">
+      <div class="role-card" data-role="locataire" onclick="selectRole(this)">
+        <div class="role-card-icon"><i data-lucide="home" class="icon icon--lg"></i></div>
+        <div class="role-card-info">
+          <div class="role-card-title">Locataire</div>
+          <div class="role-card-desc">Je cherche un logement</div>
+        </div>
+      </div>
+      <div class="role-card" data-role="bailleur" onclick="selectRole(this)">
+        <div class="role-card-icon"><i data-lucide="key" class="icon icon--lg"></i></div>
+        <div class="role-card-info">
+          <div class="role-card-title">Bailleur</div>
+          <div class="role-card-desc">Je loue mes biens</div>
+        </div>
+      </div>
+      <div class="role-card" data-role="agence" onclick="selectRole(this)">
+        <div class="role-card-icon"><i data-lucide="building" class="icon icon--lg"></i></div>
+        <div class="role-card-info">
+          <div class="role-card-title">Agence</div>
+          <div class="role-card-desc">Je gère pour des propriétaires</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" id="btn-role-next" disabled onclick="showView('register')">Continuer</button>
+    <div class="auth-toggle" style="margin-top:16px">
+      Déjà un compte ? <a onclick="showView('login')">Se connecter</a>
+    </div>
+  </div>
+
+  <!-- VUE B : Inscription -->
+  <div class="auth-view" id="view-register">
+    <button onclick="showView('role')" style="display:flex;align-items:center;gap:6px;color:var(--ink-mid);font-size:0.875rem;margin-bottom:20px;background:none;border:none;cursor:pointer">
+      ← Retour
+    </button>
+    <form id="form-register" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Prénom</label>
+          <input class="form-input" type="text" id="reg-prenom" placeholder="Jean" required autocomplete="given-name">
+          <span class="form-error" id="err-prenom"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nom</label>
+          <input class="form-input" type="text" id="reg-nom" placeholder="Kouassi" required autocomplete="family-name">
+          <span class="form-error" id="err-nom"></span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Téléphone</label>
+        <div class="input-wrapper">
+          <span class="input-icon"><i data-lucide="phone" class="icon icon--sm"></i></span>
+          <input class="form-input" type="tel" id="reg-tel" placeholder="+229 97 00 00 00" autocomplete="tel">
+        </div>
+        <span class="form-error" id="err-tel"></span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <div class="input-wrapper">
+          <span class="input-icon"><i data-lucide="mail" class="icon icon--sm"></i></span>
+          <input class="form-input" type="email" id="reg-email" placeholder="jean@exemple.com" required autocomplete="email">
+        </div>
+        <span class="form-error" id="err-email"></span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mot de passe</label>
+        <div class="input-wrapper">
+          <span class="input-icon"><i data-lucide="lock" class="icon icon--sm"></i></span>
+          <input class="form-input" type="password" id="reg-password" placeholder="Min. 8 caractères" required autocomplete="new-password" minlength="8">
+        </div>
+        <span class="form-error" id="err-password"></span>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full" id="btn-register">
+        Créer mon compte
+      </button>
+    </form>
+    <div class="auth-toggle">
+      Déjà un compte ? <a onclick="showView('login')">Se connecter</a>
+    </div>
+  </div>
+
+  <!-- VUE C : Connexion -->
+  <div class="auth-view" id="view-login">
+    <form id="form-login" style="display:flex;flex-direction:column;gap:14px">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <div class="input-wrapper">
+          <span class="input-icon"><i data-lucide="mail" class="icon icon--sm"></i></span>
+          <input class="form-input" type="email" id="login-email" placeholder="jean@exemple.com" required autocomplete="email">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mot de passe</label>
+        <div class="input-wrapper">
+          <span class="input-icon"><i data-lucide="lock" class="icon icon--sm"></i></span>
+          <input class="form-input" type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+      </div>
+      <div style="text-align:right;margin-top:-6px">
+        <a onclick="showForgotPassword()" style="font-size:0.875rem;color:var(--green);cursor:pointer">Mot de passe oublié ?</a>
+      </div>
+      <span class="form-error" id="err-login" style="text-align:center"></span>
+      <button type="submit" class="btn btn-primary btn-full" id="btn-login">Se connecter</button>
+    </form>
+    <div class="auth-toggle">
+      Pas encore de compte ? <a onclick="showView('role')">S'inscrire</a>
+    </div>
+  </div>
+
+  <!-- VUE D : Mot de passe oublié -->
+  <div class="auth-view" id="view-forgot">
+    <button onclick="showView('login')" style="display:flex;align-items:center;gap:6px;color:var(--ink-mid);font-size:0.875rem;margin-bottom:20px;background:none;border:none;cursor:pointer">
+      ← Retour à la connexion
+    </button>
+    <h3 style="margin-bottom:8px">Réinitialiser le mot de passe</h3>
+    <p style="font-size:0.875rem;color:var(--ink-mid);margin-bottom:20px">Saisissez votre email, nous vous enverrons un lien de réinitialisation.</p>
+    <form id="form-forgot" style="display:flex;flex-direction:column;gap:14px">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <div class="input-wrapper">
+          <span class="input-icon"><i data-lucide="mail" class="icon icon--sm"></i></span>
+          <input class="form-input" type="email" id="forgot-email" placeholder="jean@exemple.com" required>
+        </div>
+      </div>
+      <span class="form-error" id="err-forgot" style="text-align:center"></span>
+      <button type="submit" class="btn btn-primary btn-full" id="btn-forgot">Envoyer le lien</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Fonctions DOM pures — disponibles immédiatement (pas besoin d'import)
+  window.showView = function(view) {
+    document.querySelectorAll('.auth-view').forEach(v => v.classList.remove('active'));
+    const labels = {
+      role: 'Créer votre compte',
+      register: 'Créer votre compte',
+      login: 'Connectez-vous à votre compte',
+      forgot: 'Réinitialiser le mot de passe',
+    };
+    document.getElementById('view-' + view).classList.add('active');
+    document.getElementById('auth-subtitle').textContent = labels[view] || '';
+  };
+
+  window.selectRole = function(card) {
+    document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    sessionStorage.setItem('locasyn_role', card.dataset.role);
+    document.getElementById('btn-role-next').disabled = false;
+  };
+
+  window.showForgotPassword = function() { window.showView('forgot'); };
+
+  function showError(id, msg) {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = msg; el.classList.toggle('show', !!msg); }
+  }
+
+  function setLoading(btn, loading) {
+    btn.disabled = loading;
+    btn.textContent = loading ? '...' : btn.dataset.label || btn.textContent;
+  }
+
+  // Handlers de formulaires (import dynamique pour éviter le blob URL)
+  (async function() {
+    const authMod = await import('/assets/js/auth.js');
+    const utilsMod = await import('/assets/js/utils.js');
+    const { signIn, signUp, resetPassword, getCurrentUser } = authMod;
+    const { showToast, validateTelBenin } = utilsMod;
+
+    // Si déjà connecté → rediriger
+    getCurrentUser().then(user => {
+      if (user) {
+        const redirect = sessionStorage.getItem('locasyn_redirect') || '#home';
+        sessionStorage.removeItem('locasyn_redirect');
+        window.location.hash = redirect;
+      }
+    });
+
+    // Formulaire inscription
+    document.getElementById('form-register').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-register');
+      btn.dataset.label = 'Créer mon compte';
+
+      const prenom = document.getElementById('reg-prenom').value.trim();
+      const nom = document.getElementById('reg-nom').value.trim();
+      const telephone = document.getElementById('reg-tel').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value;
+
+      ['prenom','nom','tel','email','password'].forEach(k => showError('err-' + k, ''));
+
+      let valid = true;
+      if (!prenom) { showError('err-prenom', 'Prénom requis'); valid = false; }
+      if (!nom) { showError('err-nom', 'Nom requis'); valid = false; }
+      if (telephone && !validateTelBenin(telephone)) {
+        showError('err-tel', 'Format: +229 XX XX XX XX'); valid = false;
+      }
+      if (password.length < 8) { showError('err-password', 'Minimum 8 caractères'); valid = false; }
+      if (!valid) return;
+
+      setLoading(btn, true);
+      try {
+        await signUp({
+          email, password, nom, prenom,
+          telephone: telephone || null,
+          role: sessionStorage.getItem('locasyn_role') || 'locataire',
+        });
+      } catch (err) {
+        showError('err-email', err.message);
+        showToast(err.message, 'error');
+      } finally {
+        setLoading(btn, false);
+      }
+    });
+
+    // Formulaire connexion
+    document.getElementById('form-login').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-login');
+      btn.dataset.label = 'Se connecter';
+      showError('err-login', '');
+
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      setLoading(btn, true);
+      try {
+        await signIn({ email, password });
+      } catch (err) {
+        showError('err-login', err.message);
+      } finally {
+        setLoading(btn, false);
+      }
+    });
+
+    // Mot de passe oublié
+    document.getElementById('form-forgot').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-forgot');
+      btn.dataset.label = 'Envoyer le lien';
+      showError('err-forgot', '');
+
+      const email = document.getElementById('forgot-email').value.trim();
+      setLoading(btn, true);
+      try {
+        await resetPassword(email);
+        showToast('Lien envoyé ! Vérifiez votre email.', 'success', 5000);
+        window.showView('login');
+      } catch (err) {
+        showError('err-forgot', err.message);
+      } finally {
+        setLoading(btn, false);
+      }
+    });
+  })();
+</script>

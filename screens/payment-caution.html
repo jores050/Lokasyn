@@ -1,0 +1,15 @@
+<!-- LocaSyn — Paiement Caution Escrow -->
+<div class="navbar">
+  <button class="navbar-back" onclick="history.back()">←</button>
+  <div class="navbar-title">Paiement de la caution</div>
+</div>
+
+<div id="payment-caution-root">
+  <div style="display:flex;justify-content:center;padding:60px"><div class="spinner spinner-lg"></div></div>
+</div>
+
+<script type="module">
+  import { initPaymentCaution } from '/assets/js/modules/payment.js';
+  const params = window.__routeParams || {};
+  initPaymentCaution(params);
+</script>

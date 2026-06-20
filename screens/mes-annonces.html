@@ -1,0 +1,16 @@
+<!-- LocaSyn — Mes annonces -->
+<div class="navbar">
+  <button class="navbar-back" onclick="history.back()">←</button>
+  <div class="navbar-title">Mes annonces</div>
+</div>
+
+<div id="mes-annonces-root" style="padding:16px">
+  <div style="display:flex;justify-content:center;padding:40px"><div class="spinner spinner-lg"></div></div>
+</div>
+
+<button class="fab" onclick="window.location.hash='#publish'" title="Publier une annonce">+</button>
+
+<script type="module">
+  import { initMesAnnonces } from '/assets/js/modules/profile.js';
+  initMesAnnonces();
+</script>

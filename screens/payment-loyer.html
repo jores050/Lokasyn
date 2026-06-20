@@ -1,0 +1,15 @@
+<!-- LocaSyn — Paiement Loyer Mensuel -->
+<div class="navbar">
+  <button class="navbar-back" onclick="history.back()">←</button>
+  <div class="navbar-title">Paiement du loyer</div>
+</div>
+
+<div id="payment-loyer-root">
+  <div style="display:flex;justify-content:center;padding:60px"><div class="spinner spinner-lg"></div></div>
+</div>
+
+<script type="module">
+  import { initPaymentLoyer } from '/assets/js/modules/payment.js';
+  const params = window.__routeParams || {};
+  initPaymentLoyer(params);
+</script>

@@ -1,0 +1,79 @@
+<!-- LocaSyn — Accueil Marketplace -->
+<nav class="navbar">
+  <div class="navbar-logo">Loka<span>syn</span></div>
+  <div class="navbar-actions">
+    <button id="home-btn-publier" class="btn btn-primary btn-sm" style="display:none" onclick="window.location.hash='#publish'">+ Publier</button>
+    <button class="btn-icon" id="btn-notifs" onclick="window.location.hash='#messages'" style="position:relative">
+      <i data-lucide="bell" class="icon icon--lg"></i>
+      <span class="notif-dot" id="notif-dot" style="position:absolute;top:6px;right:6px;display:none"></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="home-hero">
+  <h1 class="home-hero-title">Trouvez votre logement idéal au Bénin</h1>
+  <p class="home-hero-sub">Des milliers d'annonces vérifiées à Cotonou, Calavi et partout au pays</p>
+  <div class="home-search mt-3">
+    <div class="search-bar" onclick="window.location.hash='#search'" style="cursor:pointer">
+      <span class="search-bar-icon"><i data-lucide="search" class="icon"></i></span>
+      <span style="color:var(--ink-light);font-size:0.9375rem">Quartier, ville, type...</span>
+    </div>
+  </div>
+</div>
+
+<!-- Filtres pills -->
+<div class="scroll-x" id="filter-pills" style="padding-top:16px">
+  <button class="pill active" data-filter="">Tous</button>
+  <button class="pill" data-filter="studio">Studios</button>
+  <button class="pill" data-filter="chambre">Chambres</button>
+  <button class="pill" data-filter="f2">F2</button>
+  <button class="pill" data-filter="f3">F3</button>
+  <button class="pill" data-filter="villa">Villas</button>
+  <button class="pill" data-meuble="true">Meublé</button>
+  <button class="pill" data-verifie="true">Vérifié <i data-lucide="badge-check" class="icon icon--sm"></i></button>
+  <button class="pill" data-etudiant="true">Étudiant OK</button>
+</div>
+
+<!-- Stats strip -->
+<div class="stats-strip" id="stats-strip">
+  <div class="stats-strip-item">
+    <div class="stats-strip-value" id="stat-logements">—</div>
+    <div class="stats-strip-label">logements</div>
+  </div>
+  <div class="stats-strip-item">
+    <div class="stats-strip-value" id="stat-bailleurs">—</div>
+    <div class="stats-strip-label">bailleurs</div>
+  </div>
+  <div class="stats-strip-item">
+    <div class="stats-strip-value" id="stat-contacts">—</div>
+    <div class="stats-strip-label">mises en relation</div>
+  </div>
+</div>
+
+<!-- À la une (boostés) -->
+<div id="section-une" style="display:none">
+  <div class="section-header">
+    <div class="section-title"><i data-lucide="sparkles" class="icon icon--sm"></i> À la une</div>
+  </div>
+  <div class="scroll-x" id="featured-list"></div>
+</div>
+
+<!-- Logements récents -->
+<div class="section-header">
+  <div class="section-title">Logements récents</div>
+  <a class="section-link" href="#search">Voir tout</a>
+</div>
+
+<div class="listings-grid" id="listings-grid">
+  <!-- Skeletons -->
+  <div class="card"><div class="skeleton" style="aspect-ratio:4/3"></div><div class="card-body"><div class="skeleton" style="height:20px;margin-bottom:8px"></div><div class="skeleton" style="height:14px;width:60%"></div></div></div>
+  <div class="card"><div class="skeleton" style="aspect-ratio:4/3"></div><div class="card-body"><div class="skeleton" style="height:20px;margin-bottom:8px"></div><div class="skeleton" style="height:14px;width:60%"></div></div></div>
+  <div class="card"><div class="skeleton" style="aspect-ratio:4/3"></div><div class="card-body"><div class="skeleton" style="height:20px;margin-bottom:8px"></div><div class="skeleton" style="height:14px;width:60%"></div></div></div>
+  <div class="card"><div class="skeleton" style="aspect-ratio:4/3"></div><div class="card-body"><div class="skeleton" style="height:20px;margin-bottom:8px"></div><div class="skeleton" style="height:14px;width:60%"></div></div></div>
+</div>
+
+<div id="load-more-container" style="padding:16px;text-align:center;display:none">
+  <button class="btn btn-secondary" id="btn-load-more">Voir plus de logements</button>
+</div>
+

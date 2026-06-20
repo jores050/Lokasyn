@@ -1,0 +1,10 @@
+<!-- LocaSyn — Chat -->
+<div id="chat-root" class="chat-col" style="height:calc(100vh - var(--bottom-nav-h))">
+  <div style="display:flex;justify-content:center;padding:60px"><div class="spinner spinner-lg"></div></div>
+</div>
+
+<script type="module">
+  import { initChat } from '/assets/js/modules/messaging.js';
+  const params = window.__routeParams || {};
+  initChat(params);
+</script>

@@ -1,0 +1,30 @@
+<!-- LocaSyn — Backoffice Admin -->
+<div class="admin-header">
+  <div style="font-family:var(--font-display);font-size:1.25rem;display:flex;align-items:center;gap:8px"><i data-lucide="settings" class="icon icon--lg"></i> Administration</div>
+  <button onclick="history.back()" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:6px 12px;border-radius:var(--radius-pill);cursor:pointer;font-size:0.875rem">Retour</button>
+</div>
+
+<div class="tabs" id="admin-tabs">
+  <div class="tab active" data-tab="moderation" onclick="switchTab(this)">Modération</div>
+  <div class="tab" data-tab="utilisateurs" onclick="switchTab(this)">Utilisateurs</div>
+  <div class="tab" data-tab="paiements" onclick="switchTab(this)">Paiements</div>
+  <div class="tab" data-tab="signalements" onclick="switchTab(this)">Signalements</div>
+  <div class="tab" data-tab="retraits" onclick="switchTab(this)">Retraits</div>
+  <div class="tab" data-tab="contestations" onclick="switchTab(this)">Contestations</div>
+  <div class="tab" data-tab="stats" onclick="switchTab(this)">Stats</div>
+</div>
+
+<div id="admin-content">
+  <div style="display:flex;justify-content:center;padding:60px"><div class="spinner spinner-lg"></div></div>
+</div>
+
+<script type="module">
+  import { init } from '/assets/js/modules/admin.js';
+  init();
+
+  window.switchTab = function(el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    window.__adminLoadTab(el.dataset.tab);
+  };
+</script>
