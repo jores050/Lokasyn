@@ -4,13 +4,15 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { showToast } from '@/components/ui/Toast'
 
+// Retourne Uint8Array au runtime (requis par pushManager.subscribe),
+// casté en ArrayBuffer pour contourner la contrainte TS sur les génériques.
 function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
-  const rawData = window.atob(base64)
-  const array = new Uint8Array(rawData.length)
-  for (let i = 0; i < rawData.length; i++) array[i] = rawData.charCodeAt(i)
-  return array.buffer
+  const rawData = atob(base64)
+  const outputArray = new Uint8Array(rawData.length)
+  for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i)
+  return outputArray as unknown as ArrayBuffer
 }
 
 export function usePushNotifications(userId: string | null) {
@@ -35,6 +37,7 @@ export function usePushNotifications(userId: string | null) {
     if (!userId) { console.warn('[PUSH] souscrire: userId manquant'); return false }
 
     const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+    console.log('[PUSH] VAPID KEY:', vapidKey ? vapidKey.slice(0, 20) + '…' : 'UNDEFINED')
     if (!vapidKey) {
       console.error('[PUSH] NEXT_PUBLIC_VAPID_PUBLIC_KEY manquant')
       showToast('Clé VAPID manquante — vérifier les variables Vercel', 'error')
