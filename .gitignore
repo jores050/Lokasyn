@@ -1,8 +1,35 @@
+# Next.js
+.next/
+out/
+
+# Node
 node_modules/
+npm-debug.log*
+
+# Environnement — ne jamais commiter les clés
 .env
 .env.local
+.env.*.local
+
+# TypeScript
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+
+# OS
 .DS_Store
-*.log
+Thumbs.db
+
+# Vercel
 .vercel
+
+# Supabase local
 supabase/.temp/
+
+# Logs
+*.log
+
+# IDE / outils
 .claude/
+
+# Archive Vanilla JS (conservée sur la branche vanilla-js-archive)
+_vanilla_source/
