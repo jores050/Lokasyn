@@ -5,7 +5,7 @@ import type { NextRequest } from 'next/server'
 const ROUTES_BAILLEUR = ['/publish', '/mes-annonces', '/loyers', '/boost', '/solde']
 const ROUTES_AUTH = [
   ...ROUTES_BAILLEUR,
-  '/messages', '/chat', '/profile', '/contrats', '/favoris', '/payment-caution', '/payment-loyer',
+  '/messages', '/chat', '/profile', '/contrats', '/favoris',
 ]
 
 export async function proxy(request: NextRequest) {
@@ -68,9 +68,16 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/publish/:path*', '/mes-annonces/:path*', '/loyers/:path*',
-    '/boost/:path*', '/solde/:path*', '/messages/:path*', '/chat/:path*',
-    '/profile/:path*', '/admin/:path*', '/contrats/:path*',
-    '/favoris/:path*', '/payment-caution/:path*', '/payment-loyer/:path*',
+    '/admin/:path*',
+    '/publish/:path*',
+    '/mes-annonces/:path*',
+    '/loyers/:path*',
+    '/boost/:path*',
+    '/solde/:path*',
+    '/messages/:path*',
+    '/chat/:path*',
+    '/profile/:path*',
+    '/favoris/:path*',
+    '/contrats/:path*',
   ],
 }
