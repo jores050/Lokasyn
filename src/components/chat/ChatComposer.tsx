@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, FormEvent } from 'react'
-import { Send, Calendar } from 'lucide-react'
+import { Send, Calendar, Home } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { sanitizeMessage } from '@/lib/utils'
 import { showToast } from '@/components/ui/Toast'
@@ -13,6 +13,7 @@ interface ChatComposerProps {
   isBailleur: boolean
   peutCreerRdv: boolean
   onOpenRdvForm: () => void
+  onOpenRecoModal: () => void
 }
 
 async function envoyerNotification(
@@ -47,7 +48,7 @@ async function envoyerNotification(
 }
 
 export function ChatComposer({
-  conversationId, userId, destinataireId, isBailleur, peutCreerRdv, onOpenRdvForm
+  conversationId, userId, destinataireId, isBailleur, peutCreerRdv, onOpenRdvForm, onOpenRecoModal
 }: ChatComposerProps) {
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
@@ -81,15 +82,25 @@ export function ChatComposer({
   return (
     <footer className="chat-col__composer">
       {isBailleur && (
-        <button
-          className="composer-action rdv-trigger"
-          title="Proposer un créneau de visite"
-          disabled={!peutCreerRdv}
-          onClick={onOpenRdvForm}
-          type="button"
-        >
-          <Calendar size={18} />
-        </button>
+        <>
+          <button
+            className="composer-action rdv-trigger"
+            title="Proposer un créneau de visite"
+            disabled={!peutCreerRdv}
+            onClick={onOpenRdvForm}
+            type="button"
+          >
+            <Calendar size={18} />
+          </button>
+          <button
+            className="composer-action"
+            title="Recommander un logement"
+            onClick={onOpenRecoModal}
+            type="button"
+          >
+            <Home size={18} />
+          </button>
+        </>
       )}
       <form style={{ flex: 1, display: 'flex', gap: 8 }} onSubmit={handleSubmit}>
         <textarea

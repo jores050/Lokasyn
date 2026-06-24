@@ -8,6 +8,7 @@ import { useAppStore } from '@/lib/store'
 import { useRdv } from '@/hooks/useRdv'
 import { RdvBanner } from '@/components/chat/RdvBanner'
 import { RdvFormModal } from '@/components/chat/RdvFormModal'
+import { RecoLogementModal } from '@/components/chat/RecoLogementModal'
 import { RdvList } from '@/components/chat/RdvList'
 import { MessageBubble } from '@/components/chat/MessageBubble'
 import { ChatComposer } from '@/components/chat/ChatComposer'
@@ -37,6 +38,7 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
   const [showRdvForm, setShowRdvForm] = useState(false)
+  const [showRecoModal, setShowRecoModal] = useState(false)
   const [onglet, setOnglet] = useState<'messages' | 'visites'>('messages')
 
   const msgEndRef = useRef<HTMLDivElement>(null)
@@ -289,6 +291,50 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
             />
           )}
 
+          {/* Modal recommandation de logement */}
+          {showRecoModal && (
+            <RecoLogementModal
+              bailleurId={user.id}
+              onClose={() => setShowRecoModal(false)}
+              onSend={async (logement) => {
+                const destinataireId = isLocataire ? (conv.bailleur?.id || '') : (conv.locataire?.id || '')
+                const { error } = await supabase.from('messages').insert({
+                  conversation_id: convId,
+                  expediteur_id: user.id,
+                  contenu: `Logement recommandé : ${logement.titre}`,
+                  type: 'reco_logement',
+                  metadata: {
+                    logement_id: logement.id,
+                    titre: logement.titre,
+                    ref_interne: logement.ref_interne || null,
+                    quartier: logement.quartier,
+                    ville: logement.ville,
+                    loyer_mensuel: logement.loyer_mensuel,
+                    photo: logement.photos?.[0] || null,
+                  },
+                })
+                if (error) showToast('Erreur lors de l\'envoi', 'error')
+                else {
+                  // Notifier le locataire
+                  const { data: existante } = await supabase.from('notifications')
+                    .select('id').eq('utilisateur_id', destinataireId)
+                    .eq('type', 'nouveau_message').eq('lien', `/chat/${convId}`)
+                    .eq('lue', false).maybeSingle()
+                  if (!existante) {
+                    await supabase.from('notifications').insert({
+                      utilisateur_id: destinataireId,
+                      type: 'nouveau_message',
+                      titre: 'Nouveau message',
+                      corps: `Logement recommandé : ${logement.titre}`,
+                      lien: `/chat/${convId}`,
+                      lue: false,
+                    })
+                  }
+                }
+              }}
+            />
+          )}
+
           {/* Composer */}
           <ChatComposer
             conversationId={convId}
@@ -297,6 +343,7 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
             isBailleur={isBailleur}
             peutCreerRdv={rdv.peutCreer}
             onOpenRdvForm={() => setShowRdvForm(v => !v)}
+            onOpenRecoModal={() => setShowRecoModal(v => !v)}
           />
         </>
       )}

@@ -1538,8 +1538,149 @@ p { color: var(--color-ink-soft); line-height: var(--lh-relaxed); }
 .modal-title {
   font-size: var(--fs-md);
   font-weight: 600;
-  margin-bottom: 8px;
 }
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink-light);
+  border-radius: var(--radius-sm);
+}
+.modal-close:hover { background: var(--surface); }
+
+.modal-loading,
+.modal-empty {
+  padding: 24px 0;
+  text-align: center;
+  font-size: var(--fs-sm);
+  color: var(--ink-light);
+}
+
+/* Recommandation de logement */
+.reco-logement-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.reco-logement-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+.reco-logement-item:hover {
+  border-color: var(--green-mid);
+  background: color-mix(in srgb, var(--green-mid) 8%, var(--white));
+}
+
+.reco-logement-photo {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--border-light);
+}
+.reco-logement-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.reco-logement-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.reco-logement-info { flex: 1; min-width: 0; }
+.reco-logement-titre {
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.reco-logement-location {
+  font-size: var(--fs-xs);
+  color: var(--ink-light);
+  margin-top: 2px;
+}
+.reco-logement-prix {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--green-mid);
+  margin-top: 2px;
+}
+
+/* Card reco dans le flux de messages */
+.msg-reco {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  text-decoration: none;
+  color: inherit;
+  max-width: 85%;
+  transition: border-color 0.15s;
+}
+.msg-reco:hover { border-color: var(--green-mid); }
+.msg-reco-photo {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--border-light);
+}
+.msg-reco-photo img { width: 100%; height: 100%; object-fit: cover; }
+.msg-reco-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+.msg-reco-info { flex: 1; min-width: 0; }
+.msg-reco-label { font-size: var(--fs-xs); color: var(--ink-light); margin-bottom: 2px; }
+.msg-reco-titre {
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.msg-reco-prix { font-size: var(--fs-xs); color: var(--green-mid); font-weight: 600; margin-top: 2px; }
 
 /* Sélecteur de logement dans la modal RDV */
 .rdv-logement-list {

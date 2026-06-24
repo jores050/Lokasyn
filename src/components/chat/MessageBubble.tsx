@@ -1,4 +1,4 @@
-import { Wallet, Check } from 'lucide-react'
+import { Wallet, Check, Home } from 'lucide-react'
 import { dateRelative, formatFCFA } from '@/lib/utils'
 import type { Message } from '@/types/database'
 
@@ -60,6 +60,31 @@ export function MessageBubble({ msg, currentUserId }: MessageBubbleProps) {
           </div>
         ) : null}
         <div className="msg-time">{time}</div>
+      </div>
+    )
+  }
+
+  // Recommandation de logement
+  if (msg.type === 'reco_logement') {
+    const logementId = String(meta.logement_id || '')
+    return (
+      <div className={isMine ? 'msg--me' : 'msg--them'} style={{ maxWidth: '85%', alignSelf: isMine ? 'flex-end' : 'flex-start' }}>
+        <a href={logementId ? `/listing/${logementId}` : '#'} className="msg-reco" style={{ display: 'flex' }}>
+          <div className="msg-reco-photo">
+            {meta.photo
+              ? <img src={String(meta.photo)} alt={String(meta.titre || '')} />
+              : <div className="msg-reco-photo-placeholder"><Home size={20} /></div>
+            }
+          </div>
+          <div className="msg-reco-info">
+            <div className="msg-reco-label">Logement recommandé</div>
+            <div className="msg-reco-titre">{String(meta.titre || '—')}</div>
+            <div className="msg-reco-prix">{formatFCFA(Number(meta.loyer_mensuel) || 0)}/mois</div>
+          </div>
+        </a>
+        <div className="msg-time" style={{ textAlign: isMine ? 'right' : 'left', marginTop: 4 }}>
+          {time}{isMine && msg.lu && <> · <Check size={12} /></>}
+        </div>
       </div>
     )
   }
