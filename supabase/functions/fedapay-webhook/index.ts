@@ -66,41 +66,16 @@ serve(async (req) => {
   )
 
   // ─── GET : redirection navigateur après paiement FedaPay ───────────────────
+  // UX uniquement — aucune écriture en base (évite la confirmation forgeable par URL)
+  // La confirmation réelle vient uniquement du POST serveur FedaPay ci-dessous
   if (req.method === 'GET') {
     const url = new URL(req.url)
     const status = url.searchParams.get('status')
-    const transactionId = url.searchParams.get('id')
     const appUrl = Deno.env.get('APP_URL') || 'https://lokasyn.vercel.app'
-
-    console.log('[WEBHOOK FEDAPAY] GET callback:', status, transactionId)
-
-    if (status === 'approved' && transactionId) {
-      try {
-        // Retrouver le paiement par transaction_id (stocké dans kkiapay_transaction_id)
-        const { data: paiement } = await supabase
-          .from('paiements')
-          .select('id, metadata')
-          .eq('kkiapay_transaction_id', transactionId)
-          .single()
-
-        if (paiement?.metadata?.rdv_id) {
-          await confirmerPaiement(supabase, paiement.id, paiement.metadata.rdv_id)
-          console.log('[WEBHOOK FEDAPAY] Paiement confirmé via GET:', paiement.id)
-        }
-      } catch (e) {
-        console.error('[WEBHOOK FEDAPAY] Erreur traitement GET:', e)
-      }
-    }
-
-    // Rediriger le navigateur vers l'app dans tous les cas
     const redirectUrl = status === 'approved'
       ? `${appUrl}/messages?paiement=confirme`
       : `${appUrl}/messages?paiement=annule`
-
-    return new Response(null, {
-      status: 302,
-      headers: { Location: redirectUrl }
-    })
+    return new Response(null, { status: 302, headers: { Location: redirectUrl } })
   }
 
   // ─── POST : webhook serveur FedaPay ────────────────────────────────────────
