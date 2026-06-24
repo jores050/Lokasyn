@@ -9,13 +9,45 @@ import { showToast } from '@/components/ui/Toast'
 interface ChatComposerProps {
   conversationId: string
   userId: string
+  destinataireId: string
   isBailleur: boolean
   peutCreerRdv: boolean
   onOpenRdvForm: () => void
 }
 
+async function envoyerNotification(
+  supabase: ReturnType<typeof createClient>,
+  expediteurId: string,
+  destinataireId: string,
+  conversationId: string,
+  contenuPreview: string
+) {
+  if (expediteurId === destinataireId) return
+
+  // Une seule notif non lue par conversation — évite le spam
+  const { data: existante } = await supabase
+    .from('notifications')
+    .select('id')
+    .eq('utilisateur_id', destinataireId)
+    .eq('type', 'nouveau_message')
+    .eq('lien', `/chat/${conversationId}`)
+    .eq('lue', false)
+    .maybeSingle()
+
+  if (existante) return
+
+  await supabase.from('notifications').insert({
+    utilisateur_id: destinataireId,
+    type: 'nouveau_message',
+    titre: 'Nouveau message',
+    corps: contenuPreview.length > 50 ? contenuPreview.slice(0, 50) + '...' : contenuPreview,
+    lien: `/chat/${conversationId}`,
+    lue: false,
+  })
+}
+
 export function ChatComposer({
-  conversationId, userId, isBailleur, peutCreerRdv, onOpenRdvForm
+  conversationId, userId, destinataireId, isBailleur, peutCreerRdv, onOpenRdvForm
 }: ChatComposerProps) {
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
@@ -40,7 +72,10 @@ export function ChatComposer({
     if (error) {
       showToast('Erreur lors de l\'envoi', 'error')
       setText(trimmed)
+      return
     }
+
+    envoyerNotification(supabase, userId, destinataireId, conversationId, contenu)
   }
 
   return (
@@ -48,7 +83,7 @@ export function ChatComposer({
       {isBailleur && (
         <button
           className="composer-action rdv-trigger"
-          title={peutCreerRdv ? 'Proposer un créneau de visite' : 'Une visite est déjà en cours'}
+          title="Proposer un créneau de visite"
           disabled={!peutCreerRdv}
           onClick={onOpenRdvForm}
           type="button"

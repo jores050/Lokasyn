@@ -28,7 +28,7 @@ export function BottomNav() {
           <span className="bottom-nav-icon" style={{ position: 'relative' }}>
             <Icon size={24} strokeWidth={1.75} />
             {route === '/messages' && unreadCount > 0 && (
-              <span className="bottom-nav-badge">{unreadCount}</span>
+              <span className="bottom-nav-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
             )}
           </span>
           <span className="bottom-nav-label">{label}</span>

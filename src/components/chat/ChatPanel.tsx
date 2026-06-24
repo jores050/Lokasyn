@@ -67,11 +67,14 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
       setMessages((msgs || []) as Message[])
       setLoading(false)
 
-      // Marquer lu avec timestamp
-      await supabase.from('messages').update({ lu: true, lu_le: new Date().toISOString() })
-        .eq('conversation_id', convId)
-        .neq('expediteur_id', user!.id)
-        .eq('lu', false)
+      const now = new Date().toISOString()
+      // Marquer messages comme lus
+      await supabase.from('messages').update({ lu: true, lu_le: now })
+        .eq('conversation_id', convId).neq('expediteur_id', user!.id).eq('lu', false)
+      // Marquer notifications de cette conversation comme lues
+      supabase.from('notifications').update({ lue: true, lue_le: now })
+        .eq('utilisateur_id', user!.id).eq('lien', `/chat/${convId}`).eq('lue', false)
+        .then(null, () => {})
     }
 
     load()
@@ -229,6 +232,7 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
       <ChatComposer
         conversationId={convId}
         userId={user.id}
+        destinataireId={isLocataire ? (conv.bailleur?.id || '') : (conv.locataire?.id || '')}
         isBailleur={isBailleur}
         peutCreerRdv={rdv.peutCreer}
         onOpenRdvForm={() => setShowRdvForm(v => !v)}

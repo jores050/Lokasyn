@@ -16,6 +16,34 @@ export interface LogementRdv {
   prix_visite: number
 }
 
+export async function peutCreerNouveauRdv(
+  conversationId: string,
+  logementId: string
+): Promise<boolean> {
+  const supabase = createClient()
+  const STATUTS_TERMINAUX = ['annule_confirme', 'refuse']
+
+  const { data: rdvs } = await supabase
+    .from('rendez_vous')
+    .select('id, statut, fenetre_contestation_expire_le')
+    .eq('conversation_id', conversationId)
+    .eq('logement_id', logementId)
+    .not('statut', 'in', `(${STATUTS_TERMINAUX.join(',')})`)
+
+  if (!rdvs || rdvs.length === 0) return true
+
+  const rdvActifExiste = rdvs.some(rdv => {
+    if (rdv.statut === 'effectue') {
+      const expiry = rdv.fenetre_contestation_expire_le
+      if (!expiry) return true
+      return new Date(expiry) > new Date()
+    }
+    return true // en_attente, confirme, annule_demande
+  })
+
+  return !rdvActifExiste
+}
+
 export async function getLogementsDeLaConversation(
   conversationId: string,
   bailleurId: string
@@ -95,7 +123,7 @@ export function useRdv(conversationId: string, userId: string | undefined) {
 
     setRdvActif(actif)
     setRdvsTermines(termines)
-    setPeutCreer(!actif)
+    setPeutCreer(true) // contrôle par logement dans creerRdv / RdvFormModal
 
     if (actif) startExpiry(actif)
   }, [conversationId, supabase, startExpiry])
@@ -192,7 +220,12 @@ export function useRdv(conversationId: string, userId: string | undefined) {
   }
 
   async function creerRdv(logementId: string, date: string, heure: string) {
-    if (!peutCreer || !userId) return null
+    if (!userId) return null
+    const autorise = await peutCreerNouveauRdv(conversationId, logementId)
+    if (!autorise) {
+      showToast('Un RDV est déjà en cours pour ce logement', 'error')
+      return null
+    }
     const { data: conv } = await supabase
       .from('conversations').select('bailleur_id, locataire_id').eq('id', conversationId).single()
     if (!conv) return null

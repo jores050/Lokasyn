@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getLogementsDeLaConversation, type LogementRdv } from '@/hooks/useRdv'
+import { getLogementsDeLaConversation, peutCreerNouveauRdv, type LogementRdv } from '@/hooks/useRdv'
 import { formatFCFA } from '@/lib/utils'
 
 interface Props {
@@ -16,9 +16,11 @@ export function RdvFormModal({ conversationId, bailleurId, onClose, onSend }: Pr
   const [etape, setEtape] = useState<'logement' | 'datetime'>('logement')
   const [logements, setLogements] = useState<LogementRdv[]>([])
   const [logementId, setLogementId] = useState<string | null>(null)
+  const [rdvBloque, setRdvBloque] = useState(false)
   const [date, setDate] = useState('')
   const [heure, setHeure] = useState('')
   const [loading, setLoading] = useState(false)
+  const [checkingRdv, setCheckingRdv] = useState(false)
 
   useEffect(() => { setVisible(true) }, [])
 
@@ -56,7 +58,7 @@ export function RdvFormModal({ conversationId, bailleurId, onClose, onSend }: Pr
                 <button
                   key={l.id}
                   className={`rdv-logement-item${logementId === l.id ? ' selected' : ''}`}
-                  onClick={() => setLogementId(l.id)}
+                  onClick={() => { setLogementId(l.id); setRdvBloque(false) }}
                   type="button"
                 >
                   <div className="rdv-logement-titre">{l.titre}</div>
@@ -67,14 +69,27 @@ export function RdvFormModal({ conversationId, bailleurId, onClose, onSend }: Pr
                 </button>
               ))}
             </div>
+            {rdvBloque && (
+              <p style={{ marginTop: 10, fontSize: '0.875rem', color: 'var(--red)', textAlign: 'center' }}>
+                Un RDV est déjà en cours pour ce logement.
+              </p>
+            )}
             <button
               className="btn btn-primary btn-full"
               style={{ marginTop: 16 }}
-              disabled={!logementId}
-              onClick={() => setEtape('datetime')}
+              disabled={!logementId || checkingRdv}
+              onClick={async () => {
+                if (!logementId) return
+                setCheckingRdv(true)
+                const ok = await peutCreerNouveauRdv(conversationId, logementId)
+                setCheckingRdv(false)
+                if (!ok) { setRdvBloque(true); return }
+                setRdvBloque(false)
+                setEtape('datetime')
+              }}
               type="button"
             >
-              Continuer
+              {checkingRdv ? 'Vérification...' : 'Continuer'}
             </button>
           </>
         )}
