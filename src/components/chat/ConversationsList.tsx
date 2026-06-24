@@ -43,6 +43,24 @@ export function ConversationsList({ activeId, onSelect }: Props) {
     load()
   }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Refresh quand l'utilisateur revient à la liste (activeId redevient null)
+  useEffect(() => {
+    if (!user?.id || activeId !== null) return
+    load()
+  }, [activeId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Realtime : UPDATE sur messages (lu: false → true) → rafraîchir les badges
+  useEffect(() => {
+    if (!user?.id) return
+    const channel = supabase
+      .channel('conv-list-msg-updates')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, () => {
+        load()
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
   async function load() {
     setLoading(true)
     const { data, error: convErr } = await supabase

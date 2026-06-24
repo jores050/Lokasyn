@@ -74,6 +74,7 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
       await supabase.from('messages').update({ lu: true, lu_le: new Date().toISOString() })
         .eq('conversation_id', convId)
         .neq('expediteur_id', user!.id)
+        .eq('lu', false)
     }
 
     load()
