@@ -34,7 +34,7 @@ export function RdvBanner({
   const estLocataire = rdv.demandeur_id === userId
   const estBailleur  = rdv.bailleur_id  === userId
 
-  const { openWidget } = useFedaPay()
+  const { openPayment } = useFedaPay()
   const [loading, setLoading] = useState(false)
 
   const frais = rdv.prix_visite ?? (rdv as any).logements?.prix_visite ?? 0
@@ -53,18 +53,11 @@ export function RdvBanner({
         return
       }
       if (data.gratuit) return // realtime mettra à jour l'UI
-      openWidget({
-        token: data.token,
-        onComplete: (transaction) => {
-          if (transaction.status === 'approved') {
-            showToast(`Paiement de ${formatFCFA(data.montant_total)} confirmé`)
-          } else {
-            showToast('Paiement non abouti, réessayez', 'error')
-          }
-        },
-        onCancel: () => {},
-        onError: () => showToast('Erreur lors du paiement', 'error'),
-      })
+      if (!data.payment_url) {
+        showToast('URL de paiement manquante', 'error')
+        return
+      }
+      openPayment(data.payment_url)
     } finally {
       setLoading(false)
     }

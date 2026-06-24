@@ -116,14 +116,16 @@ serve(async (req) => {
       .update({ kkiapay_transaction_id: String(transaction.id) })
       .eq('id', paiement.id)
 
-    // payment_token est directement dans la réponse de création
+    // payment_token et payment_url sont directement dans la réponse de création
     const token = transaction.payment_token
+    const payment_url = transaction.payment_url
 
     return jsonResponse({
       ok: true,
       gratuit: false,
       transaction_id: transaction.id,
       token,
+      payment_url,
       montant_total: montantTotal,
       frais_demarcheur: fraisDemarcheur,
       commission,
