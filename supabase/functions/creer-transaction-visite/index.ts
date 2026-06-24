@@ -61,8 +61,6 @@ serve(async (req) => {
         logement_id: rdv.logements?.id || rdv.logement_id,
         payeur_id: locataire_id,
         beneficiaire_id: rdv.bailleur_id,
-        locataire_id: locataire_id,
-        bailleur_id: rdv.bailleur_id,
         type: 'frais_visite',
         montant: montantTotal,
         montant_bailleur: fraisDemarcheur,
