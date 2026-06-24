@@ -48,6 +48,8 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
     if (!user?.id || !convId) return
 
     async function load() {
+      console.log('[DEBUG] load() — userId:', user?.id, 'convId:', convId)
+
       const [{ data: convData }, { data: msgs }] = await Promise.all([
         supabase
           .from('conversations')
@@ -70,13 +72,26 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
       setLoading(false)
 
       const now = new Date().toISOString()
-      // Marquer messages comme lus
-      await supabase.from('messages').update({ lu: true, lu_le: now })
-        .eq('conversation_id', convId).neq('expediteur_id', user!.id).eq('lu', false)
-      // Marquer notifications de cette conversation comme lues
-      supabase.from('notifications').update({ lue: true, lue_le: now })
-        .eq('utilisateur_id', user!.id).eq('lien', `/chat/${convId}`).eq('lue', false)
-        .then(null, () => {})
+
+      // Marquer messages comme lus — log verbose pour diagnostic
+      const { data: luData, error: luError, count: luCount } = await supabase
+        .from('messages')
+        .update({ lu: true, lu_le: now })
+        .eq('conversation_id', convId)
+        .neq('expediteur_id', user!.id)
+        .eq('lu', false)
+        .select()
+      console.log('[MARQUAGE LU] data:', luData, 'error:', luError, 'count:', luCount)
+
+      // Marquer notifications comme lues
+      const { data: notifData, error: notifError } = await supabase
+        .from('notifications')
+        .update({ lue: true, lue_le: now })
+        .eq('utilisateur_id', user!.id)
+        .eq('lien', `/chat/${convId}`)
+        .eq('lue', false)
+        .select()
+      console.log('[MARQUAGE NOTIF LUE] data:', notifData, 'error:', notifError)
     }
 
     load()
