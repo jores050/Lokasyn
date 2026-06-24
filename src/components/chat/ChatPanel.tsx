@@ -40,9 +40,12 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
   const [showRdvForm, setShowRdvForm] = useState(false)
   const [showRecoModal, setShowRecoModal] = useState(false)
   const [onglet, setOnglet] = useState<'messages' | 'visites'>('messages')
+  const [autreParticipantTape, setAutreParticipantTape] = useState(false)
+  const [prenomQuiTape, setPrenomQuiTape] = useState('')
 
   const msgEndRef = useRef<HTMLDivElement>(null)
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
   const rdv = useRdv(convId, user?.id)
 
@@ -121,6 +124,16 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
             supabase.from('messages').update({ lu: true, lu_le: new Date().toISOString() }).eq('id', msg.id)
           }
         })
+        .on('postgres_changes', {
+          event: 'UPDATE', schema: 'public', table: 'messages',
+          filter: `conversation_id=eq.${convId}`,
+        }, payload => {
+          if (!isMounted) return
+          const updated = payload.new as Message
+          setMessages(prev => prev.map(m =>
+            m.id === updated.id ? { ...m, lu: updated.lu } : m
+          ))
+        })
         .subscribe((status, err) => {
           console.log('[REALTIME] Statut canal messages:', status, err ?? '')
         })
@@ -145,6 +158,36 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
   useEffect(() => {
     msgEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  // Canal Presence — indicateur "en cours de frappe"
+  useEffect(() => {
+    if (!convId || !user?.id) return
+    let isMounted = true
+
+    const ch = supabase.channel(`typing:${convId}`, {
+      config: { presence: { key: user.id } },
+    })
+
+    ch.on('presence', { event: 'sync' }, () => {
+      if (!isMounted) return
+      const state = ch.presenceState<{ typing: boolean; at: number; prenom: string }>()
+      const autreQuiTape = Object.entries(state)
+        .filter(([key]) => key !== user.id)
+        .flatMap(([, presences]) => presences)
+        .find(p => p.typing && (Date.now() - p.at) < 5000)
+
+      setAutreParticipantTape(!!autreQuiTape)
+      setPrenomQuiTape(autreQuiTape?.prenom || '')
+    }).subscribe()
+
+    presenceChannelRef.current = ch
+
+    return () => {
+      isMounted = false
+      supabase.removeChannel(ch)
+      presenceChannelRef.current = null
+    }
+  }, [convId, user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!user?.id) {
     return (
@@ -175,6 +218,9 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
   const otherNom    = other ? `${other.prenom || ''} ${other.nom || ''}`.trim() : 'Inconnu'
   const otherInis   = initiales(other?.nom || '', other?.prenom || '')
   const otherColor  = avatarColor(otherNom)
+
+  // Dernier message envoyé par moi — pour afficher "Vu"
+  const lastMineId = [...messages].reverse().find(m => m.expediteur_id === user.id)?.id
 
   return (
     <div className="chat-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -260,7 +306,12 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
               </div>
             )}
             {messages.map(msg => (
-              <MessageBubble key={msg.id} msg={msg} currentUserId={user.id} />
+              <MessageBubble
+                key={msg.id}
+                msg={msg}
+                currentUserId={user.id}
+                isLastMine={msg.id === lastMineId}
+              />
             ))}
             {rdv.rdvsTermines.map(r => {
               const labels: Record<string, string> = {
@@ -335,6 +386,18 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
             />
           )}
 
+          {/* Indicateur de frappe */}
+          {autreParticipantTape && (
+            <div className="typing-indicator">
+              <span className="typing-dots">
+                <span /><span /><span />
+              </span>
+              <span className="typing-label">
+                {prenomQuiTape || 'L\'autre participant'} est en train d&apos;écrire…
+              </span>
+            </div>
+          )}
+
           {/* Composer */}
           <ChatComposer
             conversationId={convId}
@@ -344,6 +407,8 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
             peutCreerRdv={rdv.peutCreer}
             onOpenRdvForm={() => setShowRdvForm(v => !v)}
             onOpenRecoModal={() => setShowRecoModal(v => !v)}
+            presenceChannelRef={presenceChannelRef}
+            currentUserPrenom={profile?.prenom || ''}
           />
         </>
       )}

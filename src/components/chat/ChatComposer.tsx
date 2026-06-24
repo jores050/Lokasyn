@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, FormEvent } from 'react'
+import { useState, useRef, FormEvent, MutableRefObject } from 'react'
 import { Send, Calendar, Home } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { sanitizeMessage } from '@/lib/utils'
@@ -14,6 +14,8 @@ interface ChatComposerProps {
   peutCreerRdv: boolean
   onOpenRdvForm: () => void
   onOpenRecoModal: () => void
+  presenceChannelRef?: MutableRefObject<any>
+  currentUserPrenom?: string
 }
 
 async function envoyerNotification(
@@ -48,18 +50,33 @@ async function envoyerNotification(
 }
 
 export function ChatComposer({
-  conversationId, userId, destinataireId, isBailleur, peutCreerRdv, onOpenRdvForm, onOpenRecoModal
+  conversationId, userId, destinataireId, isBailleur, peutCreerRdv,
+  onOpenRdvForm, onOpenRecoModal, presenceChannelRef, currentUserPrenom,
 }: ChatComposerProps) {
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const supabase = createClient()
+
+  function trackTyping(typing: boolean) {
+    presenceChannelRef?.current?.track({
+      user_id: userId,
+      prenom: currentUserPrenom || '',
+      typing,
+      at: Date.now(),
+    })
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     const trimmed = text.trim()
     if (!trimmed || sending) return
     const contenu = sanitizeMessage(trimmed)
+
+    // Arrêter l'indicateur de frappe immédiatement à l'envoi
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+    trackTyping(false)
 
     setSending(true)
     setText('')
@@ -114,6 +131,10 @@ export function ChatComposer({
             setText(e.target.value)
             e.target.style.height = 'auto'
             e.target.style.height = Math.min(e.target.scrollHeight, 100) + 'px'
+            // Broadcast typing — auto-stop après 3 s d'inactivité
+            trackTyping(true)
+            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+            typingTimeoutRef.current = setTimeout(() => trackTyping(false), 3000)
           }}
           onKeyDown={e => {
             if (e.key === 'Enter' && !e.shiftKey) {

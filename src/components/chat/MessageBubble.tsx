@@ -18,9 +18,10 @@ const TYPES_BANNIERE = new Set([
 interface MessageBubbleProps {
   msg: Message
   currentUserId: string
+  isLastMine?: boolean
 }
 
-export function MessageBubble({ msg, currentUserId }: MessageBubbleProps) {
+export function MessageBubble({ msg, currentUserId, isLastMine }: MessageBubbleProps) {
   if (!msg) return null
   const isMine = msg.expediteur_id === currentUserId
   const time = dateRelative(msg.created_at)
@@ -83,7 +84,9 @@ export function MessageBubble({ msg, currentUserId }: MessageBubbleProps) {
           </div>
         </a>
         <div className="msg-time" style={{ textAlign: isMine ? 'right' : 'left', marginTop: 4 }}>
-          {time}{isMine && msg.lu && <> · <Check size={12} /></>}
+          {time}
+          {isMine && <span className="msg-check"><Check size={11} /></span>}
+          {isMine && isLastMine && msg.lu && <span className="msg-vu"> · Vu</span>}
         </div>
       </div>
     )
@@ -112,7 +115,8 @@ export function MessageBubble({ msg, currentUserId }: MessageBubbleProps) {
       <span style={{ whiteSpace: 'pre-wrap' }}>{msg.contenu}</span>
       <div className="msg-time">
         {time}
-        {isMine && msg.lu && <> · <Check size={12} /></>}
+        {isMine && <span className="msg-check"><Check size={11} /></span>}
+        {isMine && isLastMine && msg.lu && <span className="msg-vu"> · Vu</span>}
       </div>
     </div>
   )

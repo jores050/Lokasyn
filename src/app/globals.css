@@ -1996,6 +1996,50 @@ p { color: var(--color-ink-soft); line-height: var(--lh-relaxed); }
 .msg--them  .msg-time { text-align: left; }
 .msg--system .msg-time { text-align: center; color: var(--color-ink-faint); opacity: 1; }
 
+.msg-check {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 3px;
+  opacity: 0.55;
+}
+.msg-vu {
+  color: var(--green);
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 1;
+}
+
+/* Indicateur "en cours de frappe" */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  font-size: var(--fs-xs);
+  color: var(--ink-light);
+  min-height: 28px;
+}
+.typing-dots {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+.typing-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink-light);
+  animation: typing-bounce 1.2s infinite ease-in-out;
+}
+.typing-dots span:nth-child(1) { animation-delay: 0s; }
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing-bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40%            { transform: scale(1);   opacity: 1; }
+}
+.typing-label { font-style: italic; }
+
 /* Boutons inline dans les messages système */
 .msg-actions {
   display: flex;
