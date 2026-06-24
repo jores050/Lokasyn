@@ -168,7 +168,7 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
   if (!conv) return null
 
   const isLocataire = conv.locataire?.id === user.id
-  const isBailleur  = profile?.role === 'bailleur' || profile?.role === 'agence'
+  const isBailleur  = conv.bailleur?.id === user.id
   const other       = isLocataire ? conv.bailleur : conv.locataire
   const otherNom    = other ? `${other.prenom || ''} ${other.nom || ''}`.trim() : 'Inconnu'
   const otherInis   = initiales(other?.nom || '', other?.prenom || '')
