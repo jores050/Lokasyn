@@ -2740,6 +2740,7 @@ p { color: var(--color-ink-soft); line-height: var(--lh-relaxed); }
 /* CTA card : cachée sur mobile, visible sur desktop */
 @media (max-width: 1023px) {
   .listing-cta-card { display: none; }
+  .listing-detail-right { display: none; }
 }
 
 /* ================================================================

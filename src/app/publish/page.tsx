@@ -311,7 +311,7 @@ export default function PublishPage() {
           <div style={{ padding: '0 16px 16px' }}>
             <h3 style={{ marginBottom: 4 }}>Quel type de logement ?</h3>
           </div>
-          <div className="type-options">
+          <div className="type-grid">
             {TYPE_OPTIONS.map(({ type, icon: Icon, label }) => (
               <div
                 key={type}

@@ -153,8 +153,8 @@ export default function ListingDetailClient({ id }: { id: string }) {
 
   return (
     <div className="listing-detail-screen">
-      {/* Header overlay */}
-      <div className="listing-detail-header" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 20, display: 'flex', justifyContent: 'space-between', padding: '12px 16px' }}>
+      {/* Header — sticky mobile, relative desktop (via CSS class) */}
+      <div className="listing-detail-header">
         <button onClick={() => router.back()} style={{ width: 36, height: 36, background: 'rgba(255,255,255,0.9)', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-sm)' }}>
           <ArrowLeft size={20} />
         </button>
@@ -163,146 +163,192 @@ export default function ListingDetailClient({ id }: { id: string }) {
         </button>
       </div>
 
-      {/* Galerie */}
-      <div className="listing-gallery" style={{ position: 'relative', aspectRatio: '16/9', overflow: 'hidden', background: 'var(--sand-dark)', marginTop: 0 }}>
-        <div
-          className="listing-gallery-track"
-          style={{ transform: `translateX(-${photoIdx * 100}%)`, display: 'flex', height: '100%', transition: 'transform 0.3s' }}
-          onTouchStart={e => { startXRef.current = e.touches[0].clientX }}
-          onTouchEnd={e => {
-            const diff = startXRef.current - e.changedTouches[0].clientX
-            if (Math.abs(diff) > 40) setPhotoIdx(i => Math.max(0, Math.min(photos.length - 1, i + (diff > 0 ? 1 : -1))))
-          }}
-          onMouseDown={e => { startXRef.current = e.clientX }}
-          onMouseUp={e => {
-            const diff = startXRef.current - e.clientX
-            if (Math.abs(diff) > 40) setPhotoIdx(i => Math.max(0, Math.min(photos.length - 1, i + (diff > 0 ? 1 : -1))))
-          }}
-        >
-          {photos.length
-            ? photos.map((p, i) => (
-                <div key={i} style={{ flex: '0 0 100%', height: '100%' }}>
-                  <img src={p} alt={`Photo ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading={i === 0 ? 'eager' : 'lazy'} />
-                </div>
-              ))
-            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem' }}>🏠</div>
-          }
-        </div>
-        {photos.length > 1 && (
-          <>
-            <button className="gallery-btn gallery-btn--prev" onClick={() => setPhotoIdx(i => Math.max(0, i - 1))} style={{ opacity: photoIdx === 0 ? 0.3 : 1 }}><ChevronLeft size={24} /></button>
-            <button className="gallery-btn gallery-btn--next" onClick={() => setPhotoIdx(i => Math.min(photos.length - 1, i + 1))} style={{ opacity: photoIdx === photos.length - 1 ? 0.3 : 1 }}><ChevronRight size={24} /></button>
-            <div className="listing-gallery-counter">{photoIdx + 1} / {photos.length}</div>
-          </>
-        )}
-      </div>
+      {/* Layout : 1 colonne mobile, 2 colonnes desktop */}
+      <div className="listing-detail-desktop">
 
-      {/* Infos */}
-      <div style={{ padding: '16px 16px 0' }}>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
-          {logement.boost_actif && <span className="badge badge-amber"><Sparkles size={12} /> Mis en avant</span>}
-          {logement.verifie && <span className="badge badge-green"><BadgeCheck size={12} /> Vérifié</span>}
-          {logement.badge_etudiant && <span className="badge badge-ink"><GraduationCap size={12} /> Étudiant OK</span>}
-          {logement.meuble && <span className="badge badge-ink"><Sofa size={12} /> Meublé</span>}
-        </div>
-        <div className="listing-price">{formatFCFA(logement.loyer_mensuel)}<span style={{ fontSize: '1rem', fontWeight: 400, color: 'var(--ink-light)' }}>/mois</span></div>
-        <h1 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '6px 0 4px' }}>{logement.titre}</h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--ink-mid)', fontSize: '0.9375rem' }}>
-          <MapPin size={14} /> {logement.quartier}, {logement.ville}
-        </div>
-        {logement.surface_m2 && <div style={{ marginTop: 6, fontSize: '0.875rem', color: 'var(--ink-mid)', display: 'flex', alignItems: 'center', gap: 4 }}><Ruler size={14} /> {logement.surface_m2} m²</div>}
-        <div style={{ marginTop: 6, fontSize: '0.875rem', color: 'var(--ink-mid)', display: 'flex', alignItems: 'center', gap: 4 }}><AlertCircle size={14} /> {cautiontxt}</div>
-        {logement.type_bail && <div style={{ marginTop: 6, fontSize: '0.875rem', color: 'var(--ink-mid)', display: 'flex', alignItems: 'center', gap: 4 }}><FileText size={14} /> {BAIL_LABELS[logement.type_bail] || logement.type_bail}</div>}
-        {logement.disponible_le && <div style={{ marginTop: 6, fontSize: '0.875rem', color: 'var(--ink-mid)', display: 'flex', alignItems: 'center', gap: 4 }}><Calendar size={14} /> Disponible le {formatDateFr(logement.disponible_le)}</div>}
-      </div>
+        {/* Colonne gauche — galerie + détails */}
+        <div className="listing-detail-left">
 
-      {/* Charges incluses */}
-      {(logement.eau_incluse || logement.electricite_incluse) && (
-        <div style={{ padding: '12px 16px', display: 'flex', gap: 8 }}>
-          {logement.eau_incluse && <span className="badge badge-green"><Droplet size={12} /> Eau incluse</span>}
-          {logement.electricite_incluse && <span className="badge badge-green"><Zap size={12} /> Électricité incluse</span>}
-        </div>
-      )}
-
-      {/* Équipements */}
-      {(logement.equipements || []).length > 0 && (
-        <div style={{ padding: '0 16px 16px' }}>
-          <h3 style={{ marginBottom: 12, fontSize: '1rem' }}>Équipements</h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {(logement.equipements || []).map(eq => (
-              <span key={eq} className="badge badge-ink"><Check size={12} /> {eq}</span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Description */}
-      {logement.description && (
-        <div style={{ padding: '0 16px 20px' }}>
-          <h3 style={{ marginBottom: 10, fontSize: '1rem' }}>Description</h3>
-          <p style={{ fontSize: '0.9375rem', lineHeight: 1.7, color: 'var(--ink-mid)', whiteSpace: 'pre-wrap' }}>{logement.description}</p>
-        </div>
-      )}
-
-      {/* Mini-carte */}
-      {logement.latitude && logement.longitude && (
-        <div style={{ padding: '0 16px 16px' }}>
-          <h3 style={{ marginBottom: 10, fontSize: '1rem' }}>Localisation</h3>
-          <ListingMiniMap lat={logement.latitude} lng={logement.longitude} titre={logement.titre} />
-        </div>
-      )}
-
-      <div style={{ height: 1, background: 'var(--border)', margin: '0 16px' }} />
-
-      {/* Bailleur */}
-      <div style={{ padding: 16 }}>
-        <h3 style={{ marginBottom: 12, fontSize: '1rem' }}>Le bailleur</h3>
-        {bailleur ? (
-          <div className="bailleur-card">
-            <div className="avatar avatar-lg" style={{ background: bailleurColor }}>
-              {bailleur.photo_url ? <img src={bailleur.photo_url} alt={bailleurNom} /> : bailleurInis}
+          {/* Galerie */}
+          <div
+            className="listing-gallery"
+            onTouchStart={e => { startXRef.current = e.touches[0].clientX }}
+            onTouchEnd={e => {
+              const diff = startXRef.current - e.changedTouches[0].clientX
+              if (Math.abs(diff) > 40) setPhotoIdx(i => Math.max(0, Math.min(photos.length - 1, i + (diff > 0 ? 1 : -1))))
+            }}
+            onMouseDown={e => { startXRef.current = e.clientX }}
+            onMouseUp={e => {
+              const diff = startXRef.current - e.clientX
+              if (Math.abs(diff) > 40) setPhotoIdx(i => Math.max(0, Math.min(photos.length - 1, i + (diff > 0 ? 1 : -1))))
+            }}
+          >
+            <div className="listing-gallery-track" style={{ transform: `translateX(-${photoIdx * 100}%)` }}>
+              {photos.length
+                ? photos.map((p, i) => (
+                    <div key={i} className="listing-gallery-slide">
+                      <img src={p} alt={`Photo ${i + 1}`} loading={i === 0 ? 'eager' : 'lazy'} />
+                    </div>
+                  ))
+                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem' }}>🏠</div>
+              }
             </div>
-            <div className="bailleur-card-info">
-              <div className="bailleur-card-name">{bailleurNom}</div>
-              <div className="bailleur-card-meta" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <Star size={12} fill="var(--color-gold)" color="var(--color-gold)" />
-                {bailleur.note_moyenne ? bailleur.note_moyenne.toFixed(1) : 'Nouveau'}
+            {photos.length > 1 && (
+              <>
+                <button className="gallery-btn gallery-btn--prev" onClick={() => setPhotoIdx(i => Math.max(0, i - 1))} style={{ opacity: photoIdx === 0 ? 0.3 : 1 }}><ChevronLeft size={24} /></button>
+                <button className="gallery-btn gallery-btn--next" onClick={() => setPhotoIdx(i => Math.min(photos.length - 1, i + 1))} style={{ opacity: photoIdx === photos.length - 1 ? 0.3 : 1 }}><ChevronRight size={24} /></button>
+                <div className="listing-gallery-counter">{photoIdx + 1} / {photos.length}</div>
+              </>
+            )}
+          </div>
+
+          {/* Infos — visibles sur mobile uniquement (masquées en desktop : voir listing-info-mobile) */}
+          <div className="listing-info listing-info-mobile">
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+              {logement.boost_actif && <span className="badge badge-amber"><Sparkles size={12} /> Mis en avant</span>}
+              {logement.verifie && <span className="badge badge-green"><BadgeCheck size={12} /> Vérifié</span>}
+              {logement.badge_etudiant && <span className="badge badge-ink"><GraduationCap size={12} /> Étudiant OK</span>}
+              {logement.meuble && <span className="badge badge-ink"><Sofa size={12} /> Meublé</span>}
+            </div>
+            <div className="listing-price">{formatFCFA(logement.loyer_mensuel)}<span style={{ fontSize: '1rem', fontWeight: 400, color: 'var(--ink-light)' }}>/mois</span></div>
+            <h1 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '6px 0 4px' }}>{logement.titre}</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--ink-mid)', fontSize: '0.9375rem' }}>
+              <MapPin size={14} /> {logement.quartier}, {logement.ville}
+            </div>
+            {logement.surface_m2 && <div style={{ marginTop: 6, fontSize: '0.875rem', color: 'var(--ink-mid)', display: 'flex', alignItems: 'center', gap: 4 }}><Ruler size={14} /> {logement.surface_m2} m²</div>}
+            <div style={{ marginTop: 6, fontSize: '0.875rem', color: 'var(--ink-mid)', display: 'flex', alignItems: 'center', gap: 4 }}><AlertCircle size={14} /> {cautiontxt}</div>
+            {logement.type_bail && <div style={{ marginTop: 6, fontSize: '0.875rem', color: 'var(--ink-mid)', display: 'flex', alignItems: 'center', gap: 4 }}><FileText size={14} /> {BAIL_LABELS[logement.type_bail] || logement.type_bail}</div>}
+            {logement.disponible_le && <div style={{ marginTop: 6, fontSize: '0.875rem', color: 'var(--ink-mid)', display: 'flex', alignItems: 'center', gap: 4 }}><Calendar size={14} /> Disponible le {formatDateFr(logement.disponible_le)}</div>}
+            {(logement.eau_incluse || logement.electricite_incluse) && (
+              <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
+                {logement.eau_incluse && <span className="badge badge-green"><Droplet size={12} /> Eau incluse</span>}
+                {logement.electricite_incluse && <span className="badge badge-green"><Zap size={12} /> Électricité incluse</span>}
               </div>
-              <div className="bailleur-card-meta">Répond généralement en moins de 24h</div>
-            </div>
+            )}
           </div>
-        ) : <p style={{ color: 'var(--ink-light)' }}>Informations bailleur indisponibles</p>}
-      </div>
 
-      {/* Logements similaires */}
-      {similar.length > 0 && (
-        <>
-          <div style={{ height: 1, background: 'var(--border)', margin: '0 16px' }} />
-          <div style={{ padding: '16px 0 4px' }}>
-            <div className="section-header" style={{ padding: '0 16px', marginBottom: 12 }}>
-              <div className="section-title">Logements similaires</div>
+          {/* Équipements */}
+          {(logement.equipements || []).length > 0 && (
+            <div style={{ padding: '0 16px 16px' }}>
+              <h3 style={{ marginBottom: 12, fontSize: '1rem' }}>Équipements</h3>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {(logement.equipements || []).map(eq => (
+                  <span key={eq} className="badge badge-ink"><Check size={12} /> {eq}</span>
+                ))}
+              </div>
             </div>
-            <div style={{ display: 'flex', overflowX: 'auto', gap: 12, padding: '0 16px 4px' }}>
-              {similar.map(l => (
-                <Link key={l.id} href={`/listing/${l.id}`} style={{ textDecoration: 'none', color: 'inherit', minWidth: 200, flexShrink: 0, background: 'var(--white)', borderRadius: 'var(--radius)', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
-                  <div style={{ aspectRatio: '4/3', background: 'var(--sand-dark)', overflow: 'hidden' }}>
-                    {l.photos?.[0] && <img src={l.photos[0]} alt={l.titre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />}
+          )}
+
+          {/* Description */}
+          {logement.description && (
+            <div style={{ padding: '0 16px 20px' }}>
+              <h3 style={{ marginBottom: 10, fontSize: '1rem' }}>Description</h3>
+              <p style={{ fontSize: '0.9375rem', lineHeight: 1.7, color: 'var(--ink-mid)', whiteSpace: 'pre-wrap' }}>{logement.description}</p>
+            </div>
+          )}
+
+          {/* Mini-carte */}
+          {logement.latitude && logement.longitude && (
+            <div style={{ padding: '0 16px 16px' }}>
+              <h3 style={{ marginBottom: 10, fontSize: '1rem' }}>Localisation</h3>
+              <ListingMiniMap lat={logement.latitude} lng={logement.longitude} titre={logement.titre} />
+            </div>
+          )}
+
+          <div style={{ height: 1, background: 'var(--border)', margin: '0 16px' }} />
+
+          {/* Bailleur */}
+          <div style={{ padding: 16 }}>
+            <h3 style={{ marginBottom: 12, fontSize: '1rem' }}>Le bailleur</h3>
+            {bailleur ? (
+              <div className="bailleur-card">
+                <div className="avatar avatar-lg" style={{ background: bailleurColor }}>
+                  {bailleur.photo_url ? <img src={bailleur.photo_url} alt={bailleurNom} /> : bailleurInis}
+                </div>
+                <div className="bailleur-card-info">
+                  <div className="bailleur-card-name">{bailleurNom}</div>
+                  <div className="bailleur-card-meta" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Star size={12} fill="var(--color-gold)" color="var(--color-gold)" />
+                    {bailleur.note_moyenne ? bailleur.note_moyenne.toFixed(1) : 'Nouveau'}
                   </div>
-                  <div style={{ padding: 10 }}>
-                    <div style={{ fontWeight: 700, color: 'var(--green)', fontSize: '1rem' }}>{formatFCFA(l.loyer_mensuel)}<span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--ink-light)' }}>/mois</span></div>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--ink)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.titre}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--ink-light)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 3 }}><MapPin size={10} /> {l.quartier}</div>
-                  </div>
-                </Link>
-              ))}
+                  <div className="bailleur-card-meta">Répond généralement en moins de 24h</div>
+                </div>
+              </div>
+            ) : <p style={{ color: 'var(--ink-light)' }}>Informations bailleur indisponibles</p>}
+          </div>
+
+          {/* Logements similaires */}
+          {similar.length > 0 && (
+            <>
+              <div style={{ height: 1, background: 'var(--border)', margin: '0 16px' }} />
+              <div style={{ padding: '16px 0 4px' }}>
+                <div className="section-header" style={{ padding: '0 16px', marginBottom: 12 }}>
+                  <div className="section-title">Logements similaires</div>
+                </div>
+                <div style={{ display: 'flex', overflowX: 'auto', gap: 12, padding: '0 16px 4px' }}>
+                  {similar.map(l => (
+                    <Link key={l.id} href={`/listing/${l.id}`} style={{ textDecoration: 'none', color: 'inherit', minWidth: 200, flexShrink: 0, background: 'var(--white)', borderRadius: 'var(--radius)', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
+                      <div style={{ aspectRatio: '4/3', background: 'var(--sand-dark)', overflow: 'hidden' }}>
+                        {l.photos?.[0] && <img src={l.photos[0]} alt={l.titre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />}
+                      </div>
+                      <div style={{ padding: 10 }}>
+                        <div style={{ fontWeight: 700, color: 'var(--green)', fontSize: '1rem' }}>{formatFCFA(l.loyer_mensuel)}<span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--ink-light)' }}>/mois</span></div>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--ink)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.titre}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--ink-light)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 3 }}><MapPin size={10} /> {l.quartier}</div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+        </div>{/* /listing-detail-left */}
+
+        {/* Colonne droite — carte prix sticky (desktop uniquement, masquée sur mobile via CSS) */}
+        <div className="listing-detail-right">
+          <div className="listing-cta-card">
+            <div className="listing-cta-price">
+              {formatFCFA(logement.loyer_mensuel)}<span style={{ fontSize: '0.875rem', fontWeight: 400, color: 'var(--ink-light)' }}>/mois</span>
+            </div>
+            <div className="listing-cta-price-sub">{cautiontxt}</div>
+
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
+              {logement.boost_actif && <span className="badge badge-amber"><Sparkles size={12} /> Mis en avant</span>}
+              {logement.verifie && <span className="badge badge-green"><BadgeCheck size={12} /> Vérifié</span>}
+              {logement.badge_etudiant && <span className="badge badge-ink"><GraduationCap size={12} /> Étudiant OK</span>}
+              {logement.meuble && <span className="badge badge-ink"><Sofa size={12} /> Meublé</span>}
+              {logement.eau_incluse && <span className="badge badge-green"><Droplet size={12} /> Eau incluse</span>}
+              {logement.electricite_incluse && <span className="badge badge-green"><Zap size={12} /> Élec. incluse</span>}
+            </div>
+
+            {logement.disponible_le && (
+              <div style={{ marginBottom: 16, fontSize: '0.875rem', color: 'var(--ink-mid)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Calendar size={14} /> Disponible le {formatDateFr(logement.disponible_le)}
+              </div>
+            )}
+
+            <h2 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: 4 }}>{logement.titre}</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--ink-mid)', fontSize: '0.875rem', marginBottom: 20 }}>
+              <MapPin size={13} /> {logement.quartier}, {logement.ville}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button className="btn btn-secondary btn-full" onClick={handleVisit} disabled={visiting}>
+                <Calendar size={16} /> {visiting ? 'Chargement…' : 'Planifier une visite'}
+              </button>
+              <button className="btn btn-primary btn-full" onClick={handleContact} disabled={contacting}>
+                <MessageCircle size={16} /> {contacting ? 'Chargement…' : 'Contacter le bailleur'}
+              </button>
             </div>
           </div>
-        </>
-      )}
+        </div>{/* /listing-detail-right */}
+
+      </div>{/* /listing-detail-desktop */}
 
       <div style={{ height: 100 }} />
 
-      {/* CTA sticky */}
+      {/* CTA mobile — fixe en bas, masqué sur desktop via CSS */}
       <div className="listing-cta listing-cta-mobile" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--white)', padding: '12px 16px', display: 'flex', gap: 10, boxShadow: '0 -2px 16px rgba(0,0,0,0.08)', zIndex: 30 }}>
         <button className="btn btn-secondary" style={{ flex: 1 }} onClick={handleVisit} disabled={visiting}>
           <Calendar size={16} /> {visiting ? '...' : 'Visiter'}
