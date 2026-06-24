@@ -87,6 +87,7 @@ export function ConversationsList({ activeId, onSelect }: Props) {
     ;(unreads || []).forEach(m => {
       unreadMap[m.conversation_id] = (unreadMap[m.conversation_id] || 0) + 1
     })
+    console.log('[BADGE] unreadMap:', unreadMap)
     const lastMsgMap: Record<string, ConvRow['_lastMsg']> = {}
     ;(lastMsgs || []).forEach(m => {
       if (!lastMsgMap[m.conversation_id]) lastMsgMap[m.conversation_id] = m

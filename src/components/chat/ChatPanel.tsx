@@ -46,6 +46,7 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
 
   useEffect(() => {
     if (!user?.id || !convId) return
+    let isMounted = true
 
     async function load() {
       console.log('[DEBUG] load() — userId:', user?.id, 'convId:', convId)
@@ -66,22 +67,28 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
           .limit(100),
       ])
 
-      if (!convData) return
+      if (!isMounted || !convData) return
       setConv(convData as unknown as ConvData)
       setMessages((msgs || []) as Message[])
       setLoading(false)
 
       const now = new Date().toISOString()
 
-      // Marquer messages comme lus — log verbose pour diagnostic
-      const { data: luData, error: luError, count: luCount } = await supabase
+      // Marquer messages comme lus + mise à jour state local
+      const { data: luData, error: luError } = await supabase
         .from('messages')
         .update({ lu: true, lu_le: now })
         .eq('conversation_id', convId)
         .neq('expediteur_id', user!.id)
         .eq('lu', false)
         .select()
-      console.log('[MARQUAGE LU] data:', luData, 'error:', luError, 'count:', luCount)
+      console.log('[MARQUAGE LU] data:', luData, 'error:', luError)
+      if (isMounted && luData && luData.length > 0) {
+        const markedIds = new Set(luData.map((m: { id: string }) => m.id))
+        setMessages(prev => prev.map(m =>
+          markedIds.has(m.id) ? { ...m, lu: true, lu_le: now } : m
+        ))
+      }
 
       // Marquer notifications comme lues
       const { data: notifData, error: notifError } = await supabase
@@ -94,30 +101,42 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
       console.log('[MARQUAGE NOTIF LUE] data:', notifData, 'error:', notifError)
     }
 
-    load()
-
-    channelRef.current = supabase
-      .channel(`conv:${convId}`)
-      .on('postgres_changes', {
-        event: 'INSERT', schema: 'public', table: 'messages',
-        filter: `conversation_id=eq.${convId}`,
-      }, payload => {
-        console.log('[REALTIME] Nouveau message reçu:', payload.new)
-        const msg = payload.new as Message
-        setMessages(prev => {
-          if (prev.find(m => m.id === msg.id)) return prev
-          return [...prev, msg]
+    function souscrireRealtime() {
+      channelRef.current = supabase
+        .channel(`conv:${convId}`)
+        .on('postgres_changes', {
+          event: 'INSERT', schema: 'public', table: 'messages',
+          filter: `conversation_id=eq.${convId}`,
+        }, payload => {
+          if (!isMounted) return
+          console.log('[REALTIME] Nouveau message reçu:', payload.new)
+          const msg = payload.new as Message
+          setMessages(prev => {
+            if (prev.find(m => m.id === msg.id)) return prev
+            return [...prev, msg]
+          })
+          if (msg.expediteur_id !== user?.id) {
+            supabase.from('messages').update({ lu: true, lu_le: new Date().toISOString() }).eq('id', msg.id)
+          }
         })
-        if (msg.expediteur_id !== user?.id) {
-          supabase.from('messages').update({ lu: true, lu_le: new Date().toISOString() }).eq('id', msg.id)
-        }
-      })
-      .subscribe((status, err) => {
-        console.log('[REALTIME] Statut canal messages:', status, err ?? '')
-      })
+        .subscribe((status, err) => {
+          console.log('[REALTIME] Statut canal messages:', status, err ?? '')
+        })
+    }
+
+    async function init() {
+      await load()
+      if (isMounted) souscrireRealtime()
+    }
+
+    init()
 
     return () => {
-      if (channelRef.current) supabase.removeChannel(channelRef.current)
+      isMounted = false
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current)
+        channelRef.current = null
+      }
     }
   }, [convId, user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
