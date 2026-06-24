@@ -161,9 +161,9 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
         <div className="avatar avatar--sm" style={{ background: otherColor, marginRight: 10 }}>
           {other?.photo_url ? <img src={other.photo_url} alt={otherNom} /> : otherInis}
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 600, fontSize: '0.9375rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{otherNom}</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--ink-light)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div className="chat-header-info">
+          <div className="chat-header-name">{otherNom}</div>
+          <div className="chat-header-status">
             {conv.logements?.titre || 'Logement'} · {conv.logements?.ref_interne || ''}
           </div>
         </div>

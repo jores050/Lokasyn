@@ -81,7 +81,7 @@ export default function ListingDetailClient({ id }: { id: string }) {
       showToast('Vous êtes le bailleur de ce logement', 'warning'); return null
     }
     const { data: existing } = await supabase.from('conversations')
-      .select('id').eq('logement_id', id).eq('locataire_id', user.id).eq('bailleur_id', logement.bailleur_id).maybeSingle()
+      .select('id').eq('bailleur_id', logement.bailleur_id).eq('locataire_id', user.id).maybeSingle()
     if (existing) return existing.id
 
     const { data: newConv, error } = await supabase.from('conversations')
