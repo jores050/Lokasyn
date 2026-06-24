@@ -8,7 +8,7 @@ const ROUTES_AUTH = [
   '/messages', '/chat', '/profile', '/contrats', '/favoris',
 ]
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request })
 
   const supabase = createServerClient(
