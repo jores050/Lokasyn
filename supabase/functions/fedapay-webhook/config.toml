@@ -1,0 +1,2 @@
+[functions.fedapay-webhook]
+verify_jwt = false

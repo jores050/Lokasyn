@@ -1,0 +1,2 @@
+[functions.confirmer-annulation]
+verify_jwt = false
