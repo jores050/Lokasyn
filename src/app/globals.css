@@ -2898,9 +2898,15 @@ p { color: var(--color-ink-soft); line-height: var(--lh-relaxed); }
 
 .type-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
   padding: 16px;
+}
+
+@media (min-width: 640px) {
+  .type-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .type-option {
@@ -3115,6 +3121,15 @@ p { color: var(--color-ink-soft); line-height: var(--lh-relaxed); }
 
 .admin-tab-content {
   padding: 16px;
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-table-wrap table {
+  min-width: 600px;
 }
 
 .moderation-item {
