@@ -3459,6 +3459,11 @@ p { color: var(--color-ink-soft); line-height: var(--lh-relaxed); }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 400;
+}
+.conv-item-preview--unread {
+  font-weight: 600;
+  color: var(--ink);
 }
 
 .conv-item-badge {

@@ -183,11 +183,11 @@ export function ConversationsList({ activeId, onSelect }: Props) {
               <div className="conv-item-logement" style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', color: 'var(--ink-mid)' }}>
                 <Home size={12} /> {conv.logements?.titre || 'Logement'} · {conv.logements?.ref_interne || ''}
               </div>
-              <div className="conv-item-preview" style={unread ? { fontWeight: 600, color: 'var(--ink)' } : {}}>
+              <div className={`conv-item-preview${unread > 0 ? ' conv-item-preview--unread' : ''}`}>
                 {preview}
               </div>
             </div>
-            {unread > 0 && <div className="conv-item-badge">{unread}</div>}
+            {unread > 0 && <div className="conv-item-badge">{unread > 99 ? '99+' : unread}</div>}
           </div>
         )
       })}
