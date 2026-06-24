@@ -77,10 +77,15 @@ serve(async (req) => {
       return jsonResponse({ ok: false, error: 'erreur_creation_paiement' })
     }
 
-    const fedapayResponse = await fetch('https://api.fedapay.com/v1/transactions', {
+    const fedapayKey = Deno.env.get('FEDAPAY_SECRET_KEY') || ''
+    const fedapayBase = fedapayKey.startsWith('sk_sandbox')
+      ? 'https://sandbox-api.fedapay.com/v1'
+      : 'https://api.fedapay.com/v1'
+
+    const fedapayResponse = await fetch(`${fedapayBase}/transactions`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('FEDAPAY_SECRET_KEY')}`,
+        'Authorization': `Bearer ${fedapayKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -98,25 +103,21 @@ serve(async (req) => {
     })
 
     const fedapayData = await fedapayResponse.json()
+    // FedaPay retourne { "v1/transaction": {...} } (clé avec slash, pas objet imbriqué)
+    const transaction = fedapayData?.['v1/transaction']
 
-    if (!fedapayResponse.ok || !fedapayData?.v1?.transaction) {
+    if (!fedapayResponse.ok || !transaction?.id) {
       console.error('[FEDAPAY] Erreur création transaction:', fedapayData)
       await supabase.from('paiements').update({ statut: 'echec' }).eq('id', paiement.id)
       return jsonResponse({ ok: false, error: 'erreur_fedapay' })
     }
 
-    const transaction = fedapayData.v1.transaction
-
     await supabase.from('paiements')
       .update({ kkiapay_transaction_id: String(transaction.id) })
       .eq('id', paiement.id)
 
-    const tokenResponse = await fetch(
-      `https://api.fedapay.com/v1/transactions/${transaction.id}/token`,
-      { headers: { 'Authorization': `Bearer ${Deno.env.get('FEDAPAY_SECRET_KEY')}` } }
-    )
-    const tokenData = await tokenResponse.json()
-    const token = tokenData?.v1?.token?.token
+    // payment_token est directement dans la réponse de création
+    const token = transaction.payment_token
 
     return jsonResponse({
       ok: true,
