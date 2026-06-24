@@ -34,6 +34,7 @@ export default function ProfilePage() {
   const supabase = createClient()
   const [stats, setStats] = useState<Stats>({})
   const [loading, setLoading] = useState(true)
+  const { permission, isSupported, demanderPermission } = usePushNotifications(user?.id ?? null)
 
   useEffect(() => {
     if (!user?.id) { router.push('/auth?redirect=/profile'); return }
@@ -83,9 +84,6 @@ export default function ProfilePage() {
   const nom = `${profile.prenom || ''} ${profile.nom || ''}`.trim()
   const color = avatarColor(nom)
   const inis = initiales(profile.nom || '', profile.prenom || '')
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const { permission, isSupported, demanderPermission } = usePushNotifications(user?.id ?? null)
 
   return (
     <div className="profile-screen">
