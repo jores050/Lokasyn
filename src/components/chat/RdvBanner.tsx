@@ -54,7 +54,7 @@ export function RdvBanner({
       }
       if (data.gratuit) return // realtime mettra à jour l'UI
       const paymentUrl = data.payment_url || `https://sandbox-checkout.fedapay.com/${data.token}`
-      window.open(paymentUrl, '_blank', 'noopener,noreferrer')
+      window.location.href = paymentUrl
     } finally {
       setLoading(false)
     }
