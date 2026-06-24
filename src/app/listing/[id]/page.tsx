@@ -1,9 +1,11 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState, useEffect, useRef, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
+import nextDynamic from 'next/dynamic'
 import {
   ArrowLeft, Heart, MapPin, Ruler, AlertCircle, FileText, Calendar,
   BadgeCheck, GraduationCap, Sofa, Sparkles, Droplet, Zap,
@@ -15,7 +17,7 @@ import { formatFCFA, initiales, avatarColor, LOGEMENT_LABEL } from '@/lib/utils'
 import { showToast } from '@/components/ui/Toast'
 import type { Logement, Profile } from '@/types/database'
 
-const ListingMiniMap = dynamic(() => import('@/components/listing/ListingMiniMap'), { ssr: false })
+const ListingMiniMap = nextDynamic(() => import('@/components/listing/ListingMiniMap'), { ssr: false })
 
 interface LogementDetail extends Omit<Logement, 'profiles'> {
   profiles: Pick<Profile, 'id' | 'nom' | 'prenom' | 'note_moyenne' | 'photo_url'> | null
