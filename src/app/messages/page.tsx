@@ -11,13 +11,25 @@ export default function MessagesPage() {
   const { user } = useAppStore()
   const [activeConvId, setActiveConvId] = useState<string | null>(null)
   const [isDesktop, setIsDesktop] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     const check = () => setIsDesktop(window.innerWidth >= 1024)
     check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
   }, [])
+
+  // Avant hydration : afficher le shell mobile vide (évite le flash "Connectez-vous")
+  if (!mounted) {
+    return (
+      <div className="messages-screen">
+        <div className="messages-header"><h2>Messages</h2></div>
+        <ConversationsList activeId={null} onSelect={() => {}} />
+      </div>
+    )
+  }
 
   if (!user?.id) {
     return (
@@ -32,7 +44,7 @@ export default function MessagesPage() {
     )
   }
 
-  // Desktop — 2 colonnes
+  // Desktop — layout 2 colonnes
   if (isDesktop) {
     return (
       <div className="messages-shell">
@@ -52,7 +64,7 @@ export default function MessagesPage() {
     )
   }
 
-  // Mobile — chat affiché si convId actif, sinon liste
+  // Mobile — chat si conversation active, sinon liste
   if (activeConvId) {
     return <ChatPanel convId={activeConvId} onBack={() => setActiveConvId(null)} />
   }
