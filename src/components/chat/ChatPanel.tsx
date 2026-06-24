@@ -87,6 +87,7 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
         event: 'INSERT', schema: 'public', table: 'messages',
         filter: `conversation_id=eq.${convId}`,
       }, payload => {
+        console.log('[REALTIME] Nouveau message reçu:', payload.new)
         const msg = payload.new as Message
         setMessages(prev => {
           if (prev.find(m => m.id === msg.id)) return prev
@@ -96,7 +97,9 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
           supabase.from('messages').update({ lu: true, lu_le: new Date().toISOString() }).eq('id', msg.id)
         }
       })
-      .subscribe()
+      .subscribe((status, err) => {
+        console.log('[REALTIME] Statut canal messages:', status, err ?? '')
+      })
 
     return () => {
       if (channelRef.current) supabase.removeChannel(channelRef.current)
