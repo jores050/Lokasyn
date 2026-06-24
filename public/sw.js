@@ -1,5 +1,8 @@
 // public/sw.js — Service Worker Lokasyn PWA
 
+self.addEventListener('install', () => self.skipWaiting())
+self.addEventListener('activate', (event) => event.waitUntil(clients.claim()))
+
 self.addEventListener('push', (event) => {
   if (!event.data) return
 
