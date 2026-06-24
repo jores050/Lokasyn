@@ -16,6 +16,7 @@ interface ChatComposerProps {
   onOpenRecoModal: () => void
   presenceChannelRef?: MutableRefObject<any>
   currentUserPrenom?: string
+  onMessageSent?: (msgId: string) => void
 }
 
 async function envoyerNotification(
@@ -51,7 +52,7 @@ async function envoyerNotification(
 
 export function ChatComposer({
   conversationId, userId, destinataireId, isBailleur, peutCreerRdv,
-  onOpenRdvForm, onOpenRecoModal, presenceChannelRef, currentUserPrenom,
+  onOpenRdvForm, onOpenRecoModal, presenceChannelRef, currentUserPrenom, onMessageSent,
 }: ChatComposerProps) {
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
@@ -80,12 +81,11 @@ export function ChatComposer({
 
     setSending(true)
     setText('')
-    const { error } = await supabase.from('messages').insert({
-      conversation_id: conversationId,
-      expediteur_id: userId,
-      contenu,
-      type: 'texte',
-    })
+    const { data: msg, error } = await supabase
+      .from('messages')
+      .insert({ conversation_id: conversationId, expediteur_id: userId, contenu, type: 'texte' })
+      .select('id')
+      .single()
     setSending(false)
     if (error) {
       showToast('Erreur lors de l\'envoi', 'error')
@@ -93,9 +93,12 @@ export function ChatComposer({
       return
     }
 
+    // Callback vers ChatPanel (pour le bouton "Notifier ma réponse")
+    if (msg?.id) onMessageSent?.(msg.id)
+
     envoyerNotification(supabase, userId, destinataireId, conversationId, contenu)
 
-    // Notification push PWA (fire-and-forget, silencieux si non souscrit)
+    // Notification push PWA au destinataire
     supabase.functions.invoke('send-push-notification', {
       body: {
         destinataire_id: destinataireId,
@@ -105,6 +108,34 @@ export function ChatComposer({
         url: '/messages',
       },
     }).catch(() => {})
+
+    // Si bailleur : vérifier si le locataire attend une notif de réponse
+    if (isBailleur) {
+      supabase
+        .from('notif_reponse_demandee')
+        .select('demandeur_id')
+        .eq('conversation_id', conversationId)
+        .eq('actif', true)
+        .maybeSingle()
+        .then(({ data: demande }) => {
+          if (!demande) return
+          supabase.functions.invoke('send-push-notification', {
+            body: {
+              destinataire_id: demande.demandeur_id,
+              titre: `${currentUserPrenom || 'Le bailleur'} a répondu`,
+              corps: contenu.slice(0, 80),
+              conversation_id: conversationId,
+              url: '/messages',
+            },
+          }).catch(() => {})
+          supabase
+            .from('notif_reponse_demandee')
+            .update({ actif: false })
+            .eq('conversation_id', conversationId)
+            .eq('demandeur_id', demande.demandeur_id)
+            .then(() => {})
+        })
+    }
   }
 
   return (

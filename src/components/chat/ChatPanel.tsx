@@ -42,10 +42,14 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
   const [onglet, setOnglet] = useState<'messages' | 'visites'>('messages')
   const [autreParticipantTape, setAutreParticipantTape] = useState(false)
   const [prenomQuiTape, setPrenomQuiTape] = useState('')
+  const [dernierMessageId, setDernierMessageId] = useState<string | null>(null)
+  const [showNotifBtn, setShowNotifBtn] = useState(false)
+  const [notifActive, setNotifActive] = useState(false)
 
   const msgEndRef = useRef<HTMLDivElement>(null)
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  const notifTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const rdv = useRdv(convId, user?.id)
 
@@ -222,6 +226,26 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
   // Dernier message envoyé par moi — pour afficher "Vu"
   const lastMineId = [...messages].reverse().find(m => m.expediteur_id === user.id)?.id
 
+  function handleMessageSent(msgId: string) {
+    if (!isLocataire) return
+    setDernierMessageId(msgId)
+    setShowNotifBtn(true)
+    setNotifActive(false)
+    if (notifTimerRef.current) clearTimeout(notifTimerRef.current)
+    notifTimerRef.current = setTimeout(() => setShowNotifBtn(false), 30000)
+  }
+
+  async function activerNotifReponse() {
+    if (!dernierMessageId || !user?.id) return
+    const { error } = await supabase.from('notif_reponse_demandee').upsert(
+      { conversation_id: convId, demandeur_id: user.id, message_id: dernierMessageId, actif: true },
+      { onConflict: 'conversation_id,demandeur_id' }
+    )
+    if (error) { showToast('Erreur lors de l\'activation', 'error'); return }
+    setNotifActive(true)
+    setTimeout(() => setShowNotifBtn(false), 3000)
+  }
+
   return (
     <div className="chat-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Header */}
@@ -313,6 +337,19 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
                 isLastMine={msg.id === lastMineId}
               />
             ))}
+            {/* Bouton "Notifier ma réponse" — locataire uniquement */}
+            {showNotifBtn && isLocataire && (
+              <div className="notif-reponse-btn-wrap">
+                {!notifActive ? (
+                  <button className="notif-reponse-btn" onClick={activerNotifReponse} type="button">
+                    🔔 Être notifié quand le bailleur répond
+                  </button>
+                ) : (
+                  <div className="notif-reponse-confirm">✓ Vous serez notifié de sa réponse</div>
+                )}
+              </div>
+            )}
+
             {rdv.rdvsTermines.map(r => {
               const labels: Record<string, string> = {
                 annule_confirme: 'Visite annulée',
@@ -409,6 +446,7 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
             onOpenRecoModal={() => setShowRecoModal(v => !v)}
             presenceChannelRef={presenceChannelRef}
             currentUserPrenom={profile?.prenom || ''}
+            onMessageSent={handleMessageSent}
           />
         </>
       )}
