@@ -6,6 +6,7 @@ import { BottomNav } from '@/components/layout/BottomNav'
 import { AuthProvider } from '@/components/layout/AuthProvider'
 import { ToastProvider } from '@/components/ui/Toast'
 import { OfflineBanner } from '@/components/layout/OfflineBanner'
+import { ServiceWorkerRegistrar } from '@/components/layout/ServiceWorkerRegistrar'
 
 const fraunces = Fraunces({ subsets: ['latin'], variable: '--font-display' })
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' })
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
           <ToastProvider />
           <OfflineBanner />
+          <ServiceWorkerRegistrar />
         </AuthProvider>
       </body>
     </html>

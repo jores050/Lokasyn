@@ -6,12 +6,13 @@ import Link from 'next/link'
 import {
   Home, Key, Building, Settings, Wallet, Building2, FileText,
   Zap, CreditCard, Heart, MessageCircle, Pencil, LogOut,
-  BadgeCheck, Star, CheckCircle, ShieldCheck,
+  BadgeCheck, Star, CheckCircle, ShieldCheck, Bell,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useAppStore } from '@/lib/store'
 import { initiales, avatarColor, formatFCFA } from '@/lib/utils'
 import { showToast } from '@/components/ui/Toast'
+import { usePushNotifications } from '@/hooks/usePushNotifications'
 import type { Profile } from '@/types/database'
 
 interface Stats {
@@ -82,6 +83,9 @@ export default function ProfilePage() {
   const nom = `${profile.prenom || ''} ${profile.nom || ''}`.trim()
   const color = avatarColor(nom)
   const inis = initiales(profile.nom || '', profile.prenom || '')
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const { permission, isSupported, demanderPermission } = usePushNotifications(user?.id ?? null)
 
   return (
     <div className="profile-screen">
@@ -208,6 +212,26 @@ export default function ProfilePage() {
             <span className="profile-menu-label">Administration</span>
             <span className="profile-menu-arrow">›</span>
           </Link>
+        )}
+        {isSupported && (
+          <div
+            className="profile-menu-item"
+            style={{ cursor: permission === 'denied' ? 'default' : 'pointer' }}
+            onClick={permission !== 'granted' && permission !== 'denied' ? demanderPermission : undefined}
+          >
+            <span className="profile-menu-icon"><Bell size={20} /></span>
+            <div style={{ flex: 1 }}>
+              <div className="profile-menu-label">Notifications</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--ink-light)', marginTop: 1 }}>
+                {permission === 'granted'
+                  ? 'Activées'
+                  : permission === 'denied'
+                  ? 'Bloquées — modifier dans les paramètres du navigateur'
+                  : 'Appuyer pour activer'}
+              </div>
+            </div>
+            {permission === 'granted' && <span style={{ color: 'var(--green)', fontSize: '1.1rem' }}>✓</span>}
+          </div>
         )}
         <div className="profile-menu-item" style={{ cursor: 'pointer' }} onClick={() => showToast('Modification du profil — bientôt disponible', 'info')}>
           <span className="profile-menu-icon"><Pencil size={20} /></span>

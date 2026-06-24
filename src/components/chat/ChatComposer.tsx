@@ -94,6 +94,17 @@ export function ChatComposer({
     }
 
     envoyerNotification(supabase, userId, destinataireId, conversationId, contenu)
+
+    // Notification push PWA (fire-and-forget, silencieux si non souscrit)
+    supabase.functions.invoke('send-push-notification', {
+      body: {
+        destinataire_id: destinataireId,
+        titre: currentUserPrenom || 'Nouveau message',
+        corps: contenu.slice(0, 100),
+        conversation_id: conversationId,
+        url: '/messages',
+      },
+    }).catch(() => {})
   }
 
   return (
