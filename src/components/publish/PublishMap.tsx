@@ -74,8 +74,8 @@ export default function PublishMap({ onLocationChange, initialLat, initialLng }:
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div>
-      <div ref={mapRef} style={{ height: 220, width: '100%', borderRadius: 8, zIndex: 0 }} />
+    <div style={{ overflow: 'hidden', position: 'relative' }}>
+      <div ref={mapRef} style={{ height: 220, width: '100%', borderRadius: 8, overflow: 'hidden', position: 'relative', zIndex: 0 }} />
       <p style={{ fontSize: '0.75rem', color: 'var(--ink-light)', marginTop: 6 }}>
         Cliquez sur la carte ou faites glisser le marqueur pour préciser la localisation
       </p>

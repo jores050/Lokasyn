@@ -73,6 +73,6 @@ export default function SearchMap({ logements, onMarkerClick }: Props) {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div ref={mapRef} style={{ height: 'calc(100vh - 180px)', width: '100%', minHeight: 400 }} />
+    <div ref={mapRef} style={{ height: 'calc(100vh - 180px)', width: '100%', minHeight: 400, overflow: 'hidden', position: 'relative', zIndex: 0 }} />
   )
 }

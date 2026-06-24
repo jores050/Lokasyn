@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Fraunces, Inter, JetBrains_Mono } from 'next/font/google'
+import 'leaflet/dist/leaflet.css'
 import './globals.css'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { BottomNav } from '@/components/layout/BottomNav'

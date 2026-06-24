@@ -40,5 +40,5 @@ export default function ListingMiniMap({ lat, lng, titre }: Props) {
     }
   }, [lat, lng]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  return <div ref={mapRef} style={{ height: 150, width: '100%', borderRadius: 8 }} />
+  return <div ref={mapRef} style={{ height: 150, width: '100%', borderRadius: 8, overflow: 'hidden', position: 'relative', zIndex: 0 }} />
 }
