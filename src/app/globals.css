@@ -656,8 +656,9 @@ p { color: var(--color-ink-soft); line-height: var(--lh-relaxed); }
   .messages-shell {
     height: calc(100vh - var(--bottom-nav-h));
   }
-  .conversations-col {
-    display: none; /* sur mobile, on navigue par route */
+  /* Masquer la colonne conversations uniquement quand elle est dans le shell 2-colonnes */
+  .messages-shell .conversations-col {
+    display: none;
   }
   .chat-col {
     height: 100%;
