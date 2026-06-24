@@ -1,4 +1,4 @@
-import { Calendar, BadgeCheck, CalendarCheck, AlertCircle, CheckCircle, Wallet, Check } from 'lucide-react'
+import { Wallet, Check } from 'lucide-react'
 import { dateRelative, formatFCFA } from '@/lib/utils'
 import type { Message } from '@/types/database'
 
@@ -9,20 +9,11 @@ function formatDateFr(dateStr: string): string {
   return `${parseInt(d, 10)} ${mois[parseInt(m, 10) - 1]} ${y}`
 }
 
-const RDV_LEGACY_LABELS: Record<string, string> = {
-  rdv_demande:         'Demande de visite',
-  rdv_confirme:        'Visite confirmée',
-  rdv_programmation:   'Programmation de visite',
-  annulation_demandee: "Demande d'annulation",
-  visite_declaree:     'Visite déclarée effectuée',
-}
-const RDV_LEGACY_ICONS: Record<string, React.ElementType> = {
-  rdv_demande:         Calendar,
-  rdv_confirme:        BadgeCheck,
-  rdv_programmation:   CalendarCheck,
-  annulation_demandee: AlertCircle,
-  visite_declaree:     CheckCircle,
-}
+// Types gérés par la bannière épinglée — ne pas afficher dans le flux
+const TYPES_BANNIERE = new Set([
+  'rdv_programmation', 'rdv_confirme', 'rdv_confirme_gratuit',
+  'rdv_demande', 'annulation_demandee', 'visite_declaree', 'systeme_rdv',
+])
 
 interface MessageBubbleProps {
   msg: Message
@@ -46,23 +37,8 @@ export function MessageBubble({ msg, currentUserId }: MessageBubbleProps) {
     )
   }
 
-  // Types RDV legacy (backward compat)
-  if (Object.keys(RDV_LEGACY_LABELS).includes(msg.type)) {
-    const Icon = RDV_LEGACY_ICONS[msg.type] || Calendar
-    const dateVisite = (meta.date_visite || meta.date) as string | undefined
-    const heureVisite = (meta.heure_visite || meta.heure) as string | undefined
-    return (
-      <div className="msg msg--system">
-        <div className="msg-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Icon size={14} /> {RDV_LEGACY_LABELS[msg.type]}
-        </div>
-        {dateVisite && (
-          <div className="msg-detail">{formatDateFr(dateVisite)} à {heureVisite || '—'}</div>
-        )}
-        <div className="msg-time">{time}</div>
-      </div>
-    )
-  }
+  // Types gérés par la bannière — ne pas dupliquer dans le flux
+  if (TYPES_BANNIERE.has(msg.type)) return null
 
   // Lien paiement
   if (msg.type === 'lien_paiement') {

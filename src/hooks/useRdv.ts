@@ -115,15 +115,26 @@ export function useRdv(conversationId: string, userId: string | undefined) {
     const { data } = await supabase
       .from('rendez_vous').select('*, logements(prix_visite, titre)')
       .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true })
+      .not('statut', 'in', '(annule_confirme,refuse)')
+      .order('created_at', { ascending: false })
 
     const rdvs = (data || []) as RendezVous[]
-    const actif = rdvs.find(rdvEstActif) || null
-    const termines = rdvs.filter(r => !rdvEstActif(r))
+
+    // Priorité : en_attente/annule_demande > confirme > effectue (fenêtre active)
+    const actif = rdvs.find(rdv => {
+      if (['en_attente', 'annule_demande'].includes(rdv.statut)) return true
+      if (rdv.statut === 'confirme') return true
+      if (rdv.statut === 'effectue') {
+        const expiry = rdv.fenetre_contestation_expire_le
+        return !!(expiry && new Date(expiry) > new Date())
+      }
+      return false
+    }) || null
+    const termines = rdvs.filter(r => r !== actif)
 
     setRdvActif(actif)
     setRdvsTermines(termines)
-    setPeutCreer(true) // contrôle par logement dans creerRdv / RdvFormModal
+    setPeutCreer(true)
 
     if (actif) startExpiry(actif)
   }, [conversationId, supabase, startExpiry])
