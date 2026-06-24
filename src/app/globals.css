@@ -1556,6 +1556,28 @@ p { color: var(--color-ink-soft); line-height: var(--lh-relaxed); }
 }
 
 /* ================================================================
+   MOBILE ACTION BAR — classe utilitaire standard
+   Toute barre d'action fixe en bas sur mobile doit utiliser cette classe
+   ================================================================ */
+.mobile-action-bar {
+  position: fixed;
+  bottom: var(--bottom-nav-h);
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  z-index: 101;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
+}
+
+@media (min-width: 1024px) {
+  .mobile-action-bar { display: none; }
+}
+
+/* ================================================================
    FAB
    ================================================================ */
 .fab {
