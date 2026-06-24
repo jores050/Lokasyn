@@ -75,6 +75,34 @@ export function RdvBanner({
     }
   }
 
+  if (iframeUrl) {
+    return (
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(0,0,0,0.6)',
+        display: 'flex', flexDirection: 'column',
+      }}>
+        <div style={{
+          background: '#fff', display: 'flex', alignItems: 'center',
+          justifyContent: 'space-between', padding: '10px 16px',
+          borderBottom: '1px solid #e5e7eb',
+        }}>
+          <span style={{ fontWeight: 600, fontSize: '0.9375rem' }}>Paiement sécurisé</span>
+          <button
+            onClick={() => setIframeUrl(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: '#6b7280' }}
+            aria-label="Fermer"
+          >✕</button>
+        </div>
+        <iframe
+          src={iframeUrl}
+          style={{ flex: 1, border: 'none', width: '100%' }}
+          title="Paiement FedaPay"
+        />
+      </div>
+    )
+  }
+
   if (rdv.statut === 'en_attente') {
     return (
       <div className="rdv-banniere-card rdv-banniere-card--neutral" data-rdv-id={rdv.id}>
@@ -196,33 +224,5 @@ export function RdvBanner({
     )
   }
 
-  return (
-    <>
-      {iframeUrl && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 9999,
-          background: 'rgba(0,0,0,0.6)',
-          display: 'flex', flexDirection: 'column',
-        }}>
-          <div style={{
-            background: '#fff', display: 'flex', alignItems: 'center',
-            justifyContent: 'space-between', padding: '10px 16px',
-            borderBottom: '1px solid #e5e7eb',
-          }}>
-            <span style={{ fontWeight: 600, fontSize: '0.9375rem' }}>Paiement sécurisé</span>
-            <button
-              onClick={() => setIframeUrl(null)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: '#6b7280' }}
-              aria-label="Fermer"
-            >✕</button>
-          </div>
-          <iframe
-            src={iframeUrl}
-            style={{ flex: 1, border: 'none', width: '100%' }}
-            title="Paiement FedaPay"
-          />
-        </div>
-      )}
-    </>
-  )
+  return null
 }
