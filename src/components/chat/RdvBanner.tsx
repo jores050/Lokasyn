@@ -1,18 +1,37 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { Calendar, BadgeCheck, AlertCircle, CheckCircle, Clock, ShieldCheck } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import {
+  Calendar, BadgeCheck, AlertCircle, CheckCircle,
+  Clock, ShieldCheck, ChevronDown,
+} from 'lucide-react'
 import { formatFCFA } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { showToast } from '@/components/ui/Toast'
-import { useFedaPay } from '@/hooks/useFedaPay'
 import type { RendezVous } from '@/types/database'
 
-function formatDateFr(dateStr: string): string {
+function formatDateCourt(dateStr: string): string {
   if (!dateStr) return '—'
-  const [y, m, d] = dateStr.split('-')
+  const [, m, d] = dateStr.split('-')
   const mois = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.']
-  return `${parseInt(d, 10)} ${mois[parseInt(m, 10) - 1]} ${y}`
+  return `${parseInt(d, 10)} ${mois[parseInt(m, 10) - 1]}`
+}
+
+function labelStatut(statut: string): string {
+  const labels: Record<string, string> = {
+    en_attente:     'Visite proposée',
+    confirme:       'Visite confirmée',
+    annule_demande: 'Annulation demandée',
+    effectue:       'Visite effectuée',
+  }
+  return labels[statut] || 'Visite'
+}
+
+function IconStatut({ statut }: { statut: string }) {
+  if (statut === 'confirme')       return <BadgeCheck size={14} />
+  if (statut === 'annule_demande') return <AlertCircle size={14} />
+  if (statut === 'effectue')       return <CheckCircle size={14} />
+  return <Calendar size={14} />
 }
 
 interface RdvBannerProps {
@@ -34,13 +53,15 @@ export function RdvBanner({
   const estLocataire = rdv.demandeur_id === userId
   const estBailleur  = rdv.bailleur_id  === userId
 
-  const { openPayment } = useFedaPay()
-  const [loading, setLoading] = useState(false)
+  const [ouvert, setOuvert] = useState(
+    rdv.statut === 'en_attente' || rdv.statut === 'annule_demande'
+  )
+  const [loading, setLoading]     = useState(false)
   const [iframeUrl, setIframeUrl] = useState<string | null>(null)
 
-  const frais = rdv.prix_visite ?? (rdv as any).logements?.prix_visite ?? 0
+  const frais      = rdv.prix_visite ?? (rdv as any).logements?.prix_visite ?? 0
   const commission = frais > 0 ? (frais <= 1000 ? 100 : Math.round(frais * 0.10)) : 0
-  const total = frais + commission
+  const total      = frais + commission
 
   useEffect(() => {
     function onMessage(e: MessageEvent) {
@@ -67,7 +88,7 @@ export function RdvBanner({
         showToast(data?.error || "Erreur lors de l'initialisation du paiement", 'error')
         return
       }
-      if (data.gratuit) return // realtime mettra à jour l'UI
+      if (data.gratuit) return
       const paymentUrl = data.payment_url || `https://sandbox-checkout.fedapay.com/${data.token}`
       setIframeUrl(paymentUrl)
     } finally {
@@ -75,6 +96,7 @@ export function RdvBanner({
     }
   }
 
+  // Overlay paiement FedaPay — reste plein écran, hors collapsible
   if (iframeUrl) {
     return (
       <div style={{
@@ -103,126 +125,154 @@ export function RdvBanner({
     )
   }
 
-  if (rdv.statut === 'en_attente') {
-    return (
-      <div className="rdv-banniere-card rdv-banniere-card--neutral" data-rdv-id={rdv.id}>
-        <div className="rdv-card-header"><Calendar size={14} /> Visite proposée</div>
-        <div className="rdv-card-detail">{formatDateFr(rdv.date_visite)} à {rdv.heure_visite || '—'}</div>
-        {rdv.prix_visite ? <div className="programmation-prix">{formatFCFA(rdv.prix_visite)}</div> : null}
-        {estBailleur
-          ? <div className="rdv-card-detail" style={{ marginTop: 4 }}>En attente de confirmation du locataire</div>
-          : (
-            <>
-              {frais > 0 && (
-                <div className="rdv-card-detail" style={{ marginTop: 8, fontSize: '0.8rem' }}>
-                  {formatFCFA(frais)} frais + {formatFCFA(commission)} service = <strong>{formatFCFA(total)}</strong>
-                </div>
-              )}
-              <button
-                className="btn btn-primary"
-                style={{ width: '100%', marginTop: 10 }}
-                onClick={frais > 0 ? handlePayer : () => onConfirmer(rdv.id)}
-                disabled={loading}
-              >
-                {loading ? 'Chargement…' : frais > 0 ? `Payer ${formatFCFA(total)} et confirmer` : 'Confirmer la visite'}
-              </button>
-              <div className="programmation-rassurance">
-                <ShieldCheck size={14} /> Vous pouvez annuler à tout moment avant la visite
-              </div>
-            </>
-          )
-        }
-      </div>
-    )
-  }
-
-  if (rdv.statut === 'confirme') {
-    return (
-      <div className="rdv-banniere-card rdv-banniere-card--confirme" data-rdv-id={rdv.id}>
-        <div className="rdv-card-header"><BadgeCheck size={14} /> Visite confirmée</div>
-        <div className="rdv-card-detail">{formatDateFr(rdv.date_visite)} à {rdv.heure_visite || '—'}</div>
-        {estLocataire
-          ? (
-            <div className="rdv-card-actions" style={{ marginTop: 10 }}>
-              <button className="rdv-decline" onClick={() => onDemanderAnnulation(rdv.id)}>
-                Annuler
-              </button>
-              <button className="rdv-accept" onClick={() => onDeclarerEffectuee(rdv.id)}>
-                <CheckCircle size={14} /> Visite effectuée
-              </button>
-            </div>
-          )
-          : <div className="rdv-card-detail" style={{ marginTop: 4 }}>En attente de la date</div>
-        }
-      </div>
-    )
-  }
-
-  if (rdv.statut === 'annule_demande') {
-    if (estBailleur) {
+  function renderCorps() {
+    if (rdv.statut === 'en_attente') {
+      if (estBailleur) {
+        return (
+          <div className="rdv-card-detail">
+            En attente de confirmation du locataire
+          </div>
+        )
+      }
       return (
-        <div className="rdv-banniere-card rdv-banniere-card--alerte" data-rdv-id={rdv.id}>
-          <div className="rdv-card-header"><AlertCircle size={14} /> Demande d&apos;annulation</div>
-          <div className="rdv-card-detail">Le locataire souhaite annuler — {formatDateFr(rdv.date_visite)}</div>
-          <div className="rdv-card-actions" style={{ marginTop: 10 }}>
-            <button className="rdv-accept" onClick={() => onConfirmerAnnulation(rdv.id)}>
-              Confirmer l&apos;annulation
+        <>
+          {frais > 0 && (
+            <div className="rdv-card-detail" style={{ fontSize: '0.8rem' }}>
+              {formatFCFA(frais)} frais + {formatFCFA(commission)} service = <strong>{formatFCFA(total)}</strong>
+            </div>
+          )}
+          <button
+            className="btn btn-primary"
+            style={{ width: '100%', marginTop: 10 }}
+            onClick={frais > 0 ? handlePayer : () => onConfirmer(rdv.id)}
+            disabled={loading}
+          >
+            {loading ? 'Chargement…' : frais > 0 ? `Payer ${formatFCFA(total)} et confirmer` : 'Confirmer la visite'}
+          </button>
+          <div className="programmation-rassurance">
+            <ShieldCheck size={14} /> Vous pouvez annuler à tout moment avant la visite
+          </div>
+        </>
+      )
+    }
+
+    if (rdv.statut === 'confirme') {
+      if (estLocataire) {
+        return (
+          <div className="rdv-card-actions" style={{ marginTop: 4 }}>
+            <button className="rdv-decline" onClick={() => onDemanderAnnulation(rdv.id)}>
+              Annuler
             </button>
-            <button className="rdv-decline" onClick={() => onRefuserAnnulation(rdv.id)}>
-              Refuser
+            <button className="rdv-accept" onClick={() => onDeclarerEffectuee(rdv.id)}>
+              <CheckCircle size={14} /> Visite effectuée
             </button>
           </div>
+        )
+      }
+      return (
+        <div className="rdv-card-detail">En attente de la date</div>
+      )
+    }
+
+    if (rdv.statut === 'annule_demande') {
+      if (estBailleur) {
+        return (
+          <>
+            <div className="rdv-card-detail">Le locataire souhaite annuler</div>
+            <div className="rdv-card-actions" style={{ marginTop: 10 }}>
+              <button className="rdv-accept" onClick={() => onConfirmerAnnulation(rdv.id)}>
+                Confirmer l&apos;annulation
+              </button>
+              <button className="rdv-decline" onClick={() => onRefuserAnnulation(rdv.id)}>
+                Refuser
+              </button>
+            </div>
+          </>
+        )
+      }
+      return (
+        <div className="rdv-card-detail">
+          Le bailleur doit confirmer votre demande d&apos;annulation
         </div>
       )
     }
-    return (
-      <div className="rdv-banniere-card rdv-banniere-card--alerte" data-rdv-id={rdv.id}>
-        <div className="rdv-card-header"><Clock size={14} /> Annulation en attente</div>
-        <div className="rdv-card-detail">Le bailleur doit confirmer votre demande d&apos;annulation</div>
-      </div>
-    )
-  }
 
-  if (rdv.statut === 'effectue') {
-    const estPayant = rdv.prix_visite && rdv.prix_visite > 0
-    return (
-      <div className="rdv-banniere-card rdv-banniere-card--confirme" data-rdv-id={rdv.id}>
-        <div className="rdv-card-header"><CheckCircle size={14} /> Visite effectuée</div>
-        <div className="rdv-card-detail">{formatDateFr(rdv.date_visite)}</div>
-        {estBailleur
-          ? (
-            <>
-              <div className="rdv-card-detail" style={{ marginTop: 4 }}>
-                {estPayant ? 'Paiement libéré automatiquement sous 24h sauf contestation' : 'Confirmation enregistrée'}
-              </div>
-              <button
-                className="btn-link"
-                style={{ marginTop: 8, fontSize: '0.8125rem' }}
-                onClick={async () => {
-                  const motif = prompt('Décrivez pourquoi cette visite n\'a pas eu lieu :')
-                  if (!motif) return
-                  const supabase = createClient()
-                  await supabase.from('rendez_vous').update({ contestation_motif: motif }).eq('id', rdv.id)
-                  const { data: rdvData } = await supabase.from('rendez_vous').select('paiement_id').eq('id', rdv.id).single()
-                  if (rdvData?.paiement_id) {
-                    await supabase.from('paiements').update({ statut: 'en_contestation' }).eq('id', rdvData.paiement_id)
-                  }
-                  showToast('Contestation enregistrée — un administrateur va examiner le dossier')
-                }}
-              >
-                Cette visite n&apos;a pas eu lieu — contester
-              </button>
-            </>
-          )
-          : (
-            <div className="rdv-card-detail" style={{ marginTop: 4 }}>
-              {estPayant ? 'Paiement en cours de libération' : 'Visite confirmée'}
+    if (rdv.statut === 'effectue') {
+      const estPayant = rdv.prix_visite && rdv.prix_visite > 0
+      if (estBailleur) {
+        return (
+          <>
+            <div className="rdv-card-detail">
+              {estPayant
+                ? 'Paiement libéré automatiquement sous 24h sauf contestation'
+                : 'Confirmation enregistrée'}
             </div>
-          )
-        }
-      </div>
-    )
+            <button
+              className="btn-link"
+              style={{ marginTop: 8, fontSize: '0.8125rem' }}
+              onClick={async () => {
+                const motif = prompt('Décrivez pourquoi cette visite n\'a pas eu lieu :')
+                if (!motif) return
+                const supabase = createClient()
+                await supabase.from('rendez_vous').update({ contestation_motif: motif }).eq('id', rdv.id)
+                const { data: rdvData } = await supabase.from('rendez_vous').select('paiement_id').eq('id', rdv.id).single()
+                if (rdvData?.paiement_id) {
+                  await supabase.from('paiements').update({ statut: 'en_contestation' }).eq('id', rdvData.paiement_id)
+                }
+                showToast('Contestation enregistrée — un administrateur va examiner le dossier')
+              }}
+            >
+              Cette visite n&apos;a pas eu lieu — contester
+            </button>
+          </>
+        )
+      }
+      return (
+        <div className="rdv-card-detail">
+          {estPayant ? 'Paiement en cours de libération' : 'Visite confirmée'}
+        </div>
+      )
+    }
+
+    return null
   }
 
-  return null
+  // Aucun contenu pour les statuts non gérés
+  if (!['en_attente', 'confirme', 'annule_demande', 'effectue'].includes(rdv.statut)) {
+    return null
+  }
+
+  return (
+    <div className="rdv-banniere" data-rdv-id={rdv.id}>
+      <button
+        className="rdv-banniere-header"
+        onClick={() => setOuvert(o => !o)}
+        type="button"
+        aria-expanded={ouvert}
+      >
+        <div className="rdv-banniere-resume">
+          <IconStatut statut={rdv.statut} />
+          <span>{labelStatut(rdv.statut)}</span>
+          <span className="rdv-banniere-dot">·</span>
+          <span>{formatDateCourt(rdv.date_visite)} à {rdv.heure_visite?.slice(0, 5) || '—'}</span>
+          {total > 0 && (
+            <>
+              <span className="rdv-banniere-dot">·</span>
+              <span className="rdv-banniere-prix">{formatFCFA(total)}</span>
+            </>
+          )}
+        </div>
+        <ChevronDown
+          size={16}
+          className={`rdv-banniere-chevron${ouvert ? ' ouvert' : ''}`}
+        />
+      </button>
+
+      {ouvert && (
+        <div className="rdv-banniere-body">
+          {renderCorps()}
+        </div>
+      )}
+    </div>
+  )
 }

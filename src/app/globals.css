@@ -3839,10 +3839,66 @@ p { color: var(--color-ink-soft); line-height: var(--lh-relaxed); }
    ================================================================ */
 .rdv-banniere {
   flex-shrink: 0;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
   background: var(--surface, #f8f9fa);
+}
+
+.rdv-banniere-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
   padding: 10px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  gap: 8px;
   box-sizing: border-box;
+}
+
+.rdv-banniere-resume {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  color: var(--ink);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rdv-banniere-resume > span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rdv-banniere-dot {
+  color: var(--ink-light);
+  flex-shrink: 0;
+}
+
+.rdv-banniere-prix {
+  font-weight: 600;
+  color: var(--green);
+  flex-shrink: 0;
+}
+
+.rdv-banniere-chevron {
+  flex-shrink: 0;
+  color: var(--ink-light);
+  transition: transform 0.2s ease;
+}
+
+.rdv-banniere-chevron.ouvert {
+  transform: rotate(180deg);
+}
+
+.rdv-banniere-body {
+  padding: 0 14px 14px;
+  border-top: 1px solid var(--border-light);
 }
 
 .rdv-banniere-card {

@@ -202,17 +202,15 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
 
           {/* Bannière RDV */}
           {rdv.rdvActif && (
-            <div id="rdvBanniere" style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-light)' }}>
-              <RdvBanner
-                rdv={rdv.rdvActif}
-                userId={user.id}
-                onConfirmer={rdv.confirmerRdv}
-                onDemanderAnnulation={rdv.demanderAnnulation}
-                onConfirmerAnnulation={rdv.confirmerAnnulation}
-                onRefuserAnnulation={rdv.refuserAnnulation}
-                onDeclarerEffectuee={rdv.declarerEffectuee}
-              />
-            </div>
+            <RdvBanner
+              rdv={rdv.rdvActif}
+              userId={user.id}
+              onConfirmer={rdv.confirmerRdv}
+              onDemanderAnnulation={rdv.demanderAnnulation}
+              onConfirmerAnnulation={rdv.confirmerAnnulation}
+              onRefuserAnnulation={rdv.refuserAnnulation}
+              onDeclarerEffectuee={rdv.declarerEffectuee}
+            />
           )}
 
           {/* Messages */}
