@@ -9,23 +9,34 @@ const ROUTES_AUTH = [
 ]
 
 export async function proxy(request: NextRequest) {
-  const response = NextResponse.next({ request })
+  // CRITIQUE : supabaseResponse doit être réassignable dans setAll
+  let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() { return request.cookies.getAll() },
+        getAll() {
+          return request.cookies.getAll()
+        },
         setAll(cookiesToSet) {
+          // Étape 1 : propager dans la requête (pour les Server Components en aval)
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          )
+          // Étape 2 : recréer la réponse avec les headers mis à jour
+          supabaseResponse = NextResponse.next({ request })
+          // Étape 3 : propager dans la réponse (pour le navigateur)
           cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options)
           )
         },
       },
     }
   )
 
+  // CRITIQUE : getUser() rafraîchit le token et déclenche setAll si nécessaire
   const { data: { user } } = await supabase.auth.getUser()
   const path = request.nextUrl.pathname
 
@@ -34,7 +45,12 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/auth'
     url.searchParams.set('redirect', path)
-    return NextResponse.redirect(url)
+    const redirectResponse = NextResponse.redirect(url)
+    // Copier les cookies Supabase dans la réponse de redirection
+    supabaseResponse.cookies.getAll().forEach(cookie =>
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+    )
+    return redirectResponse
   }
 
   // Restriction rôle bailleur/agence
@@ -46,24 +62,39 @@ export async function proxy(request: NextRequest) {
       .single()
 
     if (!profile || !['bailleur', 'agence'].includes(profile.role)) {
-      return NextResponse.redirect(new URL('/', request.url))
+      const redirectResponse = NextResponse.redirect(new URL('/', request.url))
+      supabaseResponse.cookies.getAll().forEach(cookie =>
+        redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+      )
+      return redirectResponse
     }
   }
 
   // Admin
   if (path.startsWith('/admin')) {
-    if (!user) return NextResponse.redirect(new URL('/auth', request.url))
+    if (!user) {
+      const redirectResponse = NextResponse.redirect(new URL('/auth', request.url))
+      supabaseResponse.cookies.getAll().forEach(cookie =>
+        redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+      )
+      return redirectResponse
+    }
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single()
     if (!profile || profile.role !== 'admin') {
-      return NextResponse.redirect(new URL('/', request.url))
+      const redirectResponse = NextResponse.redirect(new URL('/', request.url))
+      supabaseResponse.cookies.getAll().forEach(cookie =>
+        redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+      )
+      return redirectResponse
     }
   }
 
-  return response
+  // Retourner supabaseResponse (pas NextResponse.next()) pour conserver les cookies
+  return supabaseResponse
 }
 
 export const config = {
