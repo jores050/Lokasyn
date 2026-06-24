@@ -66,13 +66,47 @@ serve(async (req) => {
   )
 
   // ─── GET : redirection navigateur après paiement FedaPay ───────────────────
-  // UX uniquement — aucune écriture en base (évite la confirmation forgeable par URL)
-  // La confirmation réelle vient uniquement du POST serveur FedaPay ci-dessous
+  // Vérifie le statut réel via l'API FedaPay avant de confirmer (ne fait pas
+  // confiance au param status= de l'URL — forgeable)
   if (req.method === 'GET') {
     const url = new URL(req.url)
-    const status = url.searchParams.get('status')
+    const transactionId = url.searchParams.get('id')
     const appUrl = Deno.env.get('APP_URL') || 'https://lokasyn.vercel.app'
-    const redirectUrl = status === 'approved'
+
+    let confirmed = false
+
+    if (transactionId) {
+      try {
+        const fedapayKey = Deno.env.get('FEDAPAY_SECRET_KEY') || ''
+        const fedapayBase = fedapayKey.startsWith('sk_sandbox')
+          ? 'https://sandbox-api.fedapay.com/v1'
+          : 'https://api.fedapay.com/v1'
+
+        // Vérification du statut réel auprès de FedaPay
+        const res = await fetch(`${fedapayBase}/transactions/${transactionId}`, {
+          headers: { 'Authorization': `Bearer ${fedapayKey}` }
+        })
+        const data = await res.json()
+        const transaction = data?.['v1/transaction']
+
+        if (transaction?.status === 'approved') {
+          const { data: paiement } = await supabase
+            .from('paiements')
+            .select('id, metadata')
+            .eq('kkiapay_transaction_id', transactionId)
+            .single()
+
+          if (paiement?.metadata?.rdv_id) {
+            await confirmerPaiement(supabase, paiement.id, paiement.metadata.rdv_id)
+            confirmed = true
+          }
+        }
+      } catch (e) {
+        console.error('[WEBHOOK FEDAPAY] Erreur vérification GET:', e)
+      }
+    }
+
+    const redirectUrl = confirmed
       ? `${appUrl}/messages?paiement=confirme`
       : `${appUrl}/messages?paiement=annule`
     return new Response(null, { status: 302, headers: { Location: redirectUrl } })
