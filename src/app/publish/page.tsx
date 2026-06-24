@@ -40,6 +40,7 @@ interface FormState {
   photoFiles: File[]
   description: string
   boost: boolean
+  prix_visite: string
 }
 
 const INITIAL: FormState = {
@@ -47,6 +48,7 @@ const INITIAL: FormState = {
   lat: null, lng: null, loyer: '', caution: 2, bail: 'mensuel',
   surface: '', meuble: false, eau: false, elec: false, etudiant: false,
   equipements: [], photos: [], photoFiles: [], description: '', boost: false,
+  prix_visite: '',
 }
 
 const TYPE_OPTIONS: { type: LogementType; icon: React.ElementType; label: string }[] = [
@@ -273,6 +275,7 @@ export default function PublishPage() {
         equipements: form.equipements,
         photos: photoUrls,
         badge_etudiant: form.etudiant,
+        prix_visite: form.prix_visite ? parseInt(form.prix_visite) : 0,
         score_completude: 0,
       }).select().single()
 
@@ -430,6 +433,16 @@ export default function PublishPage() {
                 <option value="trimestriel">Trimestriel</option>
                 <option value="annuel">Annuel</option>
               </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Frais de visite (FCFA) — optionnel</label>
+              <input
+                className="form-input" type="number" placeholder="0 = visite gratuite" min={0} max={3000}
+                value={form.prix_visite} onChange={e => setField('prix_visite', e.target.value)}
+              />
+              <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginTop: 4, display: 'block' }}>
+                Entre 500 et 3 000 FCFA — laissez vide pour une visite gratuite
+              </span>
             </div>
             <div className="form-group">
               <label className="form-label">Surface (m²) — optionnel</label>

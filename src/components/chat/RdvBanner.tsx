@@ -1,9 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import { Calendar, BadgeCheck, AlertCircle, CheckCircle, Clock, ShieldCheck } from 'lucide-react'
 import { formatFCFA } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { showToast } from '@/components/ui/Toast'
+import { useFedaPay } from '@/hooks/useFedaPay'
 import type { RendezVous } from '@/types/database'
 
 function formatDateFr(dateStr: string): string {
@@ -32,6 +34,42 @@ export function RdvBanner({
   const estLocataire = rdv.demandeur_id === userId
   const estBailleur  = rdv.bailleur_id  === userId
 
+  const { openWidget } = useFedaPay()
+  const [loading, setLoading] = useState(false)
+
+  const frais = rdv.prix_visite ?? 0
+  const commission = frais > 0 ? (frais <= 1000 ? 100 : Math.round(frais * 0.10)) : 0
+  const total = frais + commission
+
+  async function handlePayer() {
+    setLoading(true)
+    try {
+      const supabase = createClient()
+      const { data, error } = await supabase.functions.invoke('creer-transaction-visite', {
+        body: { rdv_id: rdv.id, locataire_id: userId },
+      })
+      if (error || !data?.ok) {
+        showToast(data?.error || "Erreur lors de l'initialisation du paiement", 'error')
+        return
+      }
+      if (data.gratuit) return // realtime mettra à jour l'UI
+      openWidget({
+        token: data.token,
+        onComplete: (transaction) => {
+          if (transaction.status === 'approved') {
+            showToast(`Paiement de ${formatFCFA(data.montant_total)} confirmé`)
+          } else {
+            showToast('Paiement non abouti, réessayez', 'error')
+          }
+        },
+        onCancel: () => {},
+        onError: () => showToast('Erreur lors du paiement', 'error'),
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (rdv.statut === 'en_attente') {
     return (
       <div className="rdv-banniere-card rdv-banniere-card--neutral" data-rdv-id={rdv.id}>
@@ -42,12 +80,18 @@ export function RdvBanner({
           ? <div className="rdv-card-detail" style={{ marginTop: 4 }}>En attente de confirmation du locataire</div>
           : (
             <>
+              {frais > 0 && (
+                <div className="rdv-card-detail" style={{ marginTop: 8, fontSize: '0.8rem' }}>
+                  {formatFCFA(frais)} frais + {formatFCFA(commission)} service = <strong>{formatFCFA(total)}</strong>
+                </div>
+              )}
               <button
                 className="btn btn-primary"
                 style={{ width: '100%', marginTop: 10 }}
-                onClick={() => onConfirmer(rdv.id)}
+                onClick={frais > 0 ? handlePayer : () => onConfirmer(rdv.id)}
+                disabled={loading}
               >
-                {rdv.prix_visite ? `Confirmer (${formatFCFA(rdv.prix_visite)})` : 'Confirmer la visite'}
+                {loading ? 'Chargement…' : frais > 0 ? `Payer ${formatFCFA(total)} et confirmer` : 'Confirmer la visite'}
               </button>
               <div className="programmation-rassurance">
                 <ShieldCheck size={14} /> Vous pouvez annuler à tout moment avant la visite

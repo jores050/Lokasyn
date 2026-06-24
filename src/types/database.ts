@@ -69,6 +69,7 @@ export interface Logement {
   eau_incluse: boolean
   electricite_incluse: boolean
   ref_interne?: string
+  prix_visite?: number
   vues: number
   contacts: number
   score_completude?: number
@@ -124,12 +125,29 @@ export interface Paiement {
   id: string
   locataire_id: string
   bailleur_id: string
+  payeur_id?: string
+  beneficiaire_id?: string
   logement_id?: string
   type: 'caution' | 'loyer_mensuel' | 'boost' | 'commission_plateforme' | 'frais_visite'
   montant: number
+  montant_bailleur?: number
+  montant_commission_plateforme?: number
   statut: PaiementStatut
   kkiapay_transaction_id?: string
   escrow_libere: boolean
   escrow_libere_le?: string
+  webhook_recu_le?: string
+  metadata?: Record<string, unknown>
+  created_at: string
+}
+
+export interface Notification {
+  id: string
+  utilisateur_id: string
+  type: string
+  titre: string
+  corps?: string
+  lien?: string
+  lu: boolean
   created_at: string
 }
