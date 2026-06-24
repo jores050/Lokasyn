@@ -349,7 +349,7 @@ export default function ListingDetailClient({ id }: { id: string }) {
       <div style={{ height: 100 }} />
 
       {/* CTA mobile — fixe en bas, masqué sur desktop via CSS (.listing-cta-mobile { display: none }) */}
-      <div className="listing-cta listing-cta-mobile" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--white)', padding: '12px 16px', gap: 10, boxShadow: '0 -2px 16px rgba(0,0,0,0.08)', zIndex: 30 }}>
+      <div className="listing-cta listing-cta-mobile" style={{ position: 'fixed', bottom: 'var(--bottom-nav-h)', left: 0, right: 0, background: 'var(--white)', padding: '12px 16px', gap: 10, boxShadow: '0 -2px 16px rgba(0,0,0,0.08)', zIndex: 101 }}>
         <button className="btn btn-secondary" style={{ flex: 1 }} onClick={handleVisit} disabled={visiting}>
           <Calendar size={16} /> {visiting ? '...' : 'Visiter'}
         </button>
