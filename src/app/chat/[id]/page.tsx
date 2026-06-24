@@ -1,13 +1,8 @@
-'use client'
+﻿export const dynamic = 'force-dynamic'
 
-export const dynamic = 'force-dynamic'
+import ChatPageClient from './ChatPageClient'
 
-import { use } from 'react'
-import { useRouter } from 'next/navigation'
-import { ChatPanel } from '@/components/chat/ChatPanel'
-
-export default function ChatPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: convId } = use(params)
-  const router = useRouter()
-  return <ChatPanel convId={convId} onBack={() => router.push('/messages')} />
+export default async function ChatPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  return <ChatPageClient convId={id} />
 }
