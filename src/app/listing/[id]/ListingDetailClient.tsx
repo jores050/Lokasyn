@@ -294,7 +294,7 @@ export default function ListingDetailClient({ id }: { id: string }) {
                       <div style={{ padding: 10 }}>
                         <div style={{ fontWeight: 700, color: 'var(--green)', fontSize: '1rem' }}>{formatFCFA(l.loyer_mensuel)}<span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--ink-light)' }}>/mois</span></div>
                         <div style={{ fontSize: '0.875rem', color: 'var(--ink)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.titre}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--ink-light)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 3 }}><MapPin size={10} /> {l.quartier}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--ink-light)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 3 }}><MapPin size={10} /> {l.quartier || l.ville || '—'}</div>
                       </div>
                     </Link>
                   ))}
@@ -348,8 +348,8 @@ export default function ListingDetailClient({ id }: { id: string }) {
 
       <div style={{ height: 100 }} />
 
-      {/* CTA mobile — fixe en bas, masqué sur desktop via CSS */}
-      <div className="listing-cta listing-cta-mobile" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--white)', padding: '12px 16px', display: 'flex', gap: 10, boxShadow: '0 -2px 16px rgba(0,0,0,0.08)', zIndex: 30 }}>
+      {/* CTA mobile — fixe en bas, masqué sur desktop via CSS (.listing-cta-mobile { display: none }) */}
+      <div className="listing-cta listing-cta-mobile" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--white)', padding: '12px 16px', gap: 10, boxShadow: '0 -2px 16px rgba(0,0,0,0.08)', zIndex: 30 }}>
         <button className="btn btn-secondary" style={{ flex: 1 }} onClick={handleVisit} disabled={visiting}>
           <Calendar size={16} /> {visiting ? '...' : 'Visiter'}
         </button>
