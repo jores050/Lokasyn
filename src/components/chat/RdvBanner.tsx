@@ -37,7 +37,7 @@ export function RdvBanner({
   const { openWidget } = useFedaPay()
   const [loading, setLoading] = useState(false)
 
-  const frais = rdv.prix_visite ?? 0
+  const frais = rdv.prix_visite ?? (rdv as any).logements?.prix_visite ?? 0
   const commission = frais > 0 ? (frais <= 1000 ? 100 : Math.round(frais * 0.10)) : 0
   const total = frais + commission
 

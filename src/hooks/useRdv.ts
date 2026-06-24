@@ -48,7 +48,7 @@ export function useRdv(conversationId: string, userId: string | undefined) {
 
   const charger = useCallback(async () => {
     const { data } = await supabase
-      .from('rendez_vous').select('*')
+      .from('rendez_vous').select('*, logements(prix_visite, titre)')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: true })
 
@@ -160,6 +160,9 @@ export function useRdv(conversationId: string, userId: string | undefined) {
       .from('conversations').select('bailleur_id, locataire_id, logement_id').eq('id', conversationId).single()
     if (!conv) return null
 
+    const { data: logement } = await supabase
+      .from('logements').select('prix_visite').eq('id', conv.logement_id).single()
+
     const { data: rdv, error: rdvError } = await supabase.from('rendez_vous').insert({
       conversation_id: conversationId,
       logement_id: conv.logement_id,
@@ -168,6 +171,7 @@ export function useRdv(conversationId: string, userId: string | undefined) {
       statut: 'en_attente',
       date_visite: date,
       heure_visite: heure,
+      prix_visite: logement?.prix_visite ?? 0,
     }).select().single()
     if (rdvError) { console.error('[useRdv] creerRdv:', rdvError); return null }
 
