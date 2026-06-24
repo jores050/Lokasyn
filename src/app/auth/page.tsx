@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Mail, Lock, Phone, Home, Key, Building } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -19,7 +19,7 @@ const VIEW_LABELS: Record<View, string> = {
   forgot: 'Réinitialiser le mot de passe',
 }
 
-export default function AuthPage() {
+function AuthContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { setUser, setProfile } = useAppStore()
@@ -278,5 +278,13 @@ export default function AuthPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense>
+      <AuthContent />
+    </Suspense>
   )
 }

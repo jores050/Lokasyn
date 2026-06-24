@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Script from 'next/script'
 import { Home, CheckCircle, XCircle, Smartphone, AlertTriangle } from 'lucide-react'
@@ -15,7 +15,7 @@ const STATUT_CLASS: Record<string, string> = {
   confirme: 'paye', en_cours: 'en-cours', echec: 'retard', en_attente: 'futur',
 }
 
-export default function PaymentLoyerPage() {
+function PaymentLoyerContent() {
   const { user } = useAppStore()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -221,4 +221,8 @@ export default function PaymentLoyerPage() {
       </div>
     </>
   )
+}
+
+export default function PaymentLoyerPage() {
+  return <Suspense><PaymentLoyerContent /></Suspense>
 }

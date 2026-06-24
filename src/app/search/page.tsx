@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
@@ -26,7 +26,7 @@ interface SearchFilters {
   badge_etudiant: boolean
 }
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const supabase = createClient()
@@ -203,4 +203,8 @@ export default function SearchPage() {
       )}
     </div>
   )
+}
+
+export default function SearchPage() {
+  return <Suspense><SearchContent /></Suspense>
 }

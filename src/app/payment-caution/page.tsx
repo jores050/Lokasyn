@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect, use, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Script from 'next/script'
 import { Lock, Sparkles, CheckCircle, XCircle, Smartphone } from 'lucide-react'
@@ -18,7 +18,7 @@ declare global {
 
 type Screen = 'form' | 'success' | 'error'
 
-export default function PaymentCautionPage() {
+function PaymentCautionContent() {
   const { user } = useAppStore()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -220,4 +220,8 @@ export default function PaymentCautionPage() {
       </div>
     </>
   )
+}
+
+export default function PaymentCautionPage() {
+  return <Suspense><PaymentCautionContent /></Suspense>
 }
