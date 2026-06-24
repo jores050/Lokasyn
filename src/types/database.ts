@@ -148,6 +148,7 @@ export interface Notification {
   titre: string
   corps?: string
   lien?: string
-  lu: boolean
+  lue: boolean
+  lue_le?: string
   created_at: string
 }
