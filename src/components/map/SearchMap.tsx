@@ -22,6 +22,13 @@ export default function SearchMap({ logements, onMarkerClick }: Props) {
 
     let map: import('leaflet').Map
 
+    if (!document.querySelector('link[href*="leaflet"]')) {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+      document.head.appendChild(link)
+    }
+
     import('leaflet').then(L => {
       // Corriger les icônes par défaut Leaflet (cassées avec bundlers)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

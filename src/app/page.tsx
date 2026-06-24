@@ -1,8 +1,12 @@
 import Link from 'next/link'
 import { Search, Bell } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import { ListingGrid } from '@/components/listing/ListingGrid'
 import { HomePublishButton } from '@/components/layout/HomePublishButton'
-import { StatsStrip } from '@/components/home/StatsStrip'
+
+export const revalidate = 60
+
+const StatsStrip = dynamic(() => import('@/components/home/StatsStrip').then(m => ({ default: m.StatsStrip })), { ssr: false })
 
 export default function HomePage() {
   return (
