@@ -13,7 +13,12 @@ export default function ListingMiniMap({ lat, lng, titre }: Props) {
   const mapInstanceRef = useRef<import('leaflet').Map | null>(null)
 
   useEffect(() => {
-    if (!mapRef.current || mapInstanceRef.current) return
+    if (!mapRef.current) return
+
+    if ((mapRef.current as any)._leaflet_id) {
+      if (mapInstanceRef.current) { mapInstanceRef.current.remove(); mapInstanceRef.current = null }
+      delete (mapRef.current as any)._leaflet_id
+    }
 
     import('leaflet').then(L => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

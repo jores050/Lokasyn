@@ -13,7 +13,12 @@ export default function SearchMap({ logements, onMarkerClick }: Props) {
   const mapInstanceRef = useRef<import('leaflet').Map | null>(null)
 
   useEffect(() => {
-    if (!mapRef.current || mapInstanceRef.current) return
+    if (!mapRef.current) return
+
+    if ((mapRef.current as any)._leaflet_id) {
+      if (mapInstanceRef.current) { mapInstanceRef.current.remove(); mapInstanceRef.current = null }
+      delete (mapRef.current as any)._leaflet_id
+    }
 
     let map: import('leaflet').Map
 

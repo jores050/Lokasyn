@@ -14,7 +14,12 @@ export default function PublishMap({ onLocationChange, initialLat, initialLng }:
   const markerRef = useRef<import('leaflet').Marker | null>(null)
 
   useEffect(() => {
-    if (!mapRef.current || mapInstanceRef.current) return
+    if (!mapRef.current) return
+
+    if ((mapRef.current as any)._leaflet_id) {
+      if (mapInstanceRef.current) { mapInstanceRef.current.remove(); mapInstanceRef.current = null; markerRef.current = null }
+      delete (mapRef.current as any)._leaflet_id
+    }
 
     import('leaflet').then(L => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
