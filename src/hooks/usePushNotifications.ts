@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { showToast } from '@/components/ui/Toast'
 
 function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
@@ -18,27 +19,47 @@ export function usePushNotifications(userId: string | null) {
   const supabase = createClient()
 
   useEffect(() => {
-    setIsSupported('serviceWorker' in navigator && 'PushManager' in window)
+    const supported = 'serviceWorker' in navigator && 'PushManager' in window
+    setIsSupported(supported)
     if ('Notification' in window) {
-      setPermission(Notification.permission)
+      const perm = Notification.permission
+      setPermission(perm)
+      // Si permission déjà accordée → s'assurer que la souscription est en DB
+      if (supported && perm === 'granted' && userId) {
+        souscrire().catch(e => console.warn('[PUSH] Auto-souscription:', e))
+      }
     }
-  }, [])
+  }, [userId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function souscrire() {
-    if (!userId) return
+  async function souscrire(): Promise<boolean> {
+    if (!userId) { console.warn('[PUSH] souscrire: userId manquant'); return false }
 
+    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+    if (!vapidKey) {
+      console.error('[PUSH] NEXT_PUBLIC_VAPID_PUBLIC_KEY manquant')
+      showToast('Clé VAPID manquante — vérifier les variables Vercel', 'error')
+      return false
+    }
+
+    console.log('[PUSH] Attente serviceWorker.ready…')
     const registration = await navigator.serviceWorker.ready
+    console.log('[PUSH] SW prêt:', registration.scope)
 
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(
-        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
-      ),
-    })
+    let subscription: PushSubscription
+    try {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
+      })
+      console.log('[PUSH] PushSubscription créée:', subscription.endpoint)
+    } catch (e) {
+      console.error('[PUSH] pushManager.subscribe échoué:', e)
+      showToast('Impossible de s\'abonner aux notifications push', 'error')
+      return false
+    }
 
     const sub = subscription.toJSON()
-
-    await supabase.from('push_subscriptions').upsert(
+    const { error } = await supabase.from('push_subscriptions').upsert(
       {
         utilisateur_id: userId,
         endpoint: sub.endpoint!,
@@ -48,22 +69,39 @@ export function usePushNotifications(userId: string | null) {
       { onConflict: 'utilisateur_id,endpoint' }
     )
 
-    console.log('[PUSH] Souscription enregistrée')
+    if (error) {
+      console.error('[PUSH] Erreur upsert push_subscriptions:', error)
+      showToast(`Erreur DB push_subscriptions : ${error.message}`, 'error')
+      return false
+    }
+
+    console.log('[PUSH] Souscription enregistrée en DB ✓')
+    return true
   }
 
   async function demanderPermission(): Promise<boolean> {
-    if (!isSupported || !userId) return false
+    if (!isSupported) {
+      showToast('Notifications non supportées sur ce navigateur', 'info')
+      return false
+    }
+    if (!userId) return false
 
     try {
       const result = await Notification.requestPermission()
       setPermission(result)
 
+      if (result === 'denied') {
+        showToast('Permission refusée — modifiez les paramètres du navigateur', 'error')
+        return false
+      }
       if (result !== 'granted') return false
 
-      await souscrire()
-      return true
+      const ok = await souscrire()
+      if (ok) showToast('Notifications activées ✓', 'success')
+      return ok
     } catch (e) {
-      console.error('[PUSH] Erreur demande permission:', e)
+      console.error('[PUSH] Erreur demanderPermission:', e)
+      showToast('Erreur lors de l\'activation des notifications', 'error')
       return false
     }
   }
