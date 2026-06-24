@@ -1512,6 +1512,68 @@ p { color: var(--color-ink-soft); line-height: var(--lh-relaxed); }
   transform: translateY(0);
 }
 
+/* modal-sheet — variante nommée de bottom-sheet */
+.modal-sheet {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--white);
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: 20px 16px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-overlay.show .modal-sheet { transform: translateY(0); }
+
+.modal-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+.modal-title {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* Sélecteur de logement dans la modal RDV */
+.rdv-logement-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+.rdv-logement-item {
+  text-align: left;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  width: 100%;
+}
+.rdv-logement-item:hover,
+.rdv-logement-item.selected {
+  border-color: var(--green-mid);
+  background: color-mix(in srgb, var(--green-mid) 8%, var(--white));
+}
+.rdv-logement-titre {
+  font-weight: 500;
+  font-size: var(--fs-sm);
+  color: var(--ink);
+}
+.rdv-logement-meta {
+  font-size: var(--fs-xs);
+  color: var(--ink-light);
+  margin-top: 2px;
+}
+
 .bottom-sheet-handle {
   width: 36px;
   height: 4px;

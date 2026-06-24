@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Calendar } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useAppStore } from '@/lib/store'
 import { useRdv } from '@/hooks/useRdv'
 import { RdvBanner } from '@/components/chat/RdvBanner'
+import { RdvFormModal } from '@/components/chat/RdvFormModal'
 import { MessageBubble } from '@/components/chat/MessageBubble'
 import { ChatComposer } from '@/components/chat/ChatComposer'
 import { initiales, avatarColor } from '@/lib/utils'
@@ -22,8 +23,6 @@ interface ConvData {
   bailleur: Profile | null
 }
 
-interface RdvFormState { date: string; heure: string; message: string }
-
 interface ChatPanelProps {
   convId: string
   onBack?: () => void
@@ -37,8 +36,6 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
   const [showRdvForm, setShowRdvForm] = useState(false)
-  const [rdvForm, setRdvForm] = useState<RdvFormState>({ date: '', heure: '', message: '' })
-  const [submittingRdv, setSubmittingRdv] = useState(false)
 
   const msgEndRef = useRef<HTMLDivElement>(null)
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
@@ -104,20 +101,6 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
   useEffect(() => {
     msgEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
-
-  async function handleCreerRdv() {
-    if (!rdvForm.date || !rdvForm.heure) { showToast('Renseignez la date et l\'heure', 'error'); return }
-    setSubmittingRdv(true)
-    const result = await rdv.creerRdv(rdvForm.date, rdvForm.heure, rdvForm.message)
-    setSubmittingRdv(false)
-    if (result) {
-      setShowRdvForm(false)
-      setRdvForm({ date: '', heure: '', message: '' })
-      showToast('Demande de visite envoyée !', 'success')
-    } else {
-      showToast('Erreur lors de la création du RDV', 'error')
-    }
-  }
 
   if (!user?.id) {
     return (
@@ -228,33 +211,18 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
         <div ref={msgEndRef} />
       </div>
 
-      {/* Formulaire RDV */}
-      {showRdvForm && (
-        <div style={{ background: 'var(--surface)', borderTop: '1px solid var(--border-light)', padding: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Calendar size={16} /> Proposer une visite
-            </div>
-            <button onClick={() => setShowRdvForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink-mid)' }}>✕</button>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-            <div className="form-group">
-              <label className="form-label">Date</label>
-              <input className="form-input" type="date" value={rdvForm.date} onChange={e => setRdvForm(f => ({ ...f, date: e.target.value }))} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Heure</label>
-              <input className="form-input" type="time" value={rdvForm.heure} onChange={e => setRdvForm(f => ({ ...f, heure: e.target.value }))} />
-            </div>
-          </div>
-          <div className="form-group" style={{ marginBottom: 10 }}>
-            <label className="form-label">Message (optionnel)</label>
-            <input className="form-input" type="text" placeholder="Apportez une pièce d'identité…" value={rdvForm.message} onChange={e => setRdvForm(f => ({ ...f, message: e.target.value }))} />
-          </div>
-          <button className="btn btn-primary btn-full" disabled={submittingRdv} onClick={handleCreerRdv}>
-            {submittingRdv ? '...' : 'Envoyer la proposition'}
-          </button>
-        </div>
+      {/* Modal RDV — sélecteur logement + date/heure */}
+      {showRdvForm && conv && (
+        <RdvFormModal
+          conversationId={convId}
+          bailleurId={user.id}
+          onClose={() => setShowRdvForm(false)}
+          onSend={async (lgmtId, date, heure) => {
+            const result = await rdv.creerRdv(lgmtId, date, heure)
+            if (result) showToast('Demande de visite envoyée !', 'success')
+            else showToast('Erreur lors de la création du RDV', 'error')
+          }}
+        />
       )}
 
       {/* Composer */}

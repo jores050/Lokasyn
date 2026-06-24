@@ -8,6 +8,43 @@ import type { RendezVous } from '@/types/database'
 
 const STATUTS_TERMINAUX = ['annule_confirme', 'refuse']
 
+export interface LogementRdv {
+  id: string
+  titre: string
+  ref_interne: string
+  quartier: string
+  prix_visite: number
+}
+
+export async function getLogementsDeLaConversation(
+  conversationId: string,
+  bailleurId: string
+): Promise<LogementRdv[]> {
+  const supabase = createClient()
+
+  const [{ data: conv }, { data: msgMeta }] = await Promise.all([
+    supabase.from('conversations').select('logement_id').eq('id', conversationId).single(),
+    supabase.from('messages').select('metadata').eq('conversation_id', conversationId).not('metadata', 'is', null),
+  ])
+
+  const ids = new Set<string>()
+  if (conv?.logement_id) ids.add(conv.logement_id)
+  ;(msgMeta || []).forEach((m: { metadata: Record<string, unknown> | null }) => {
+    const lid = m.metadata?.logement_id
+    if (typeof lid === 'string') ids.add(lid)
+  })
+
+  if (!ids.size) return []
+
+  const { data } = await supabase
+    .from('logements')
+    .select('id, titre, ref_interne, quartier, prix_visite')
+    .in('id', Array.from(ids))
+    .eq('bailleur_id', bailleurId)
+
+  return (data || []) as LogementRdv[]
+}
+
 export function rdvEstActif(rdv: RendezVous): boolean {
   if (!rdv) return false
   if (STATUTS_TERMINAUX.includes(rdv.statut)) return false
@@ -154,18 +191,18 @@ export function useRdv(conversationId: string, userId: string | undefined) {
     if (error) { showToast('Erreur lors de la déclaration de visite', 'error'); console.error('[useRdv] declarerEffectuee:', error) }
   }
 
-  async function creerRdv(date: string, heure: string, message: string) {
+  async function creerRdv(logementId: string, date: string, heure: string) {
     if (!peutCreer || !userId) return null
     const { data: conv } = await supabase
-      .from('conversations').select('bailleur_id, locataire_id, logement_id').eq('id', conversationId).single()
+      .from('conversations').select('bailleur_id, locataire_id').eq('id', conversationId).single()
     if (!conv) return null
 
     const { data: logement } = await supabase
-      .from('logements').select('prix_visite').eq('id', conv.logement_id).single()
+      .from('logements').select('prix_visite').eq('id', logementId).single()
 
     const { data: rdv, error: rdvError } = await supabase.from('rendez_vous').insert({
       conversation_id: conversationId,
-      logement_id: conv.logement_id,
+      logement_id: logementId,
       demandeur_id: conv.locataire_id,
       bailleur_id: conv.bailleur_id,
       statut: 'en_attente',
@@ -179,7 +216,7 @@ export function useRdv(conversationId: string, userId: string | undefined) {
       await supabase.from('messages').insert({
         conversation_id: conversationId, expediteur_id: userId,
         contenu: `Demande de visite : ${date} à ${heure}`, type: 'rdv_programmation',
-        metadata: { date_visite: date, heure_visite: heure },
+        metadata: { logement_id: logementId, date_visite: date, heure_visite: heure },
       })
     }
     return rdv

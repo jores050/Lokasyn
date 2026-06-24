@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useAppStore } from '@/lib/store'
-import { formatFCFA, initiales, avatarColor, LOGEMENT_LABEL } from '@/lib/utils'
+import { formatFCFA, initiales, avatarColor, LOGEMENT_LABEL, sanitizeMessage } from '@/lib/utils'
 import { showToast } from '@/components/ui/Toast'
 import type { Logement, Profile } from '@/types/database'
 
@@ -92,29 +92,26 @@ export default function ListingDetailClient({ id }: { id: string }) {
     return newConv.id
   }
 
-  async function handleContact() {
+  async function handleContacter(type: 'contact' | 'visite') {
     if (!user?.id) { router.push(`/auth?redirect=/listing/${id}`); return }
-    setContacting(true)
+    type === 'visite' ? setVisiting(true) : setContacting(true)
     try {
       const convId = await getOrCreateConversation()
-      if (convId) router.push(`/chat/${convId}`)
-    } catch { showToast('Erreur lors de la mise en relation', 'error') }
-    setContacting(false)
-  }
-
-  async function handleVisit() {
-    if (!user?.id) { router.push(`/auth?redirect=/listing/${id}`); return }
-    setVisiting(true)
-    try {
-      const convId = await getOrCreateConversation()
-      if (!convId) { setVisiting(false); return }
+      if (!convId) return
+      const label = LOGEMENT_LABEL[logement!.type] || logement!.type
+      const ref = logement!.ref_interne ? ` (${logement!.ref_interne})` : ''
+      const contenu = type === 'visite'
+        ? `Bonjour, j'aimerais planifier une visite pour votre ${label} à ${logement!.quartier}${ref}. Vous êtes disponible quand ?`
+        : `Bonjour, je suis intéressé(e) par votre ${label} à ${logement!.quartier}${ref}. Pouvez-vous me donner plus d'informations ?`
       await supabase.from('messages').insert({
         conversation_id: convId, expediteur_id: user.id,
-        contenu: "Bonjour, j'aimerais visiter ce logement. Vous êtes disponible quand ?", type: 'texte',
+        contenu: sanitizeMessage(contenu), type: 'texte',
+        metadata: { logement_id: id, ref_interne: logement!.ref_interne || '' },
       })
+      await supabase.from('conversations').update({ derniere_activite: new Date().toISOString() }).eq('id', convId)
       router.push(`/chat/${convId}`)
-    } catch { showToast('Erreur lors de la demande de visite', 'error') }
-    setVisiting(false)
+    } catch { showToast('Erreur lors de la mise en relation', 'error') }
+    finally { setContacting(false); setVisiting(false) }
   }
 
   async function handleFav() {
@@ -334,10 +331,10 @@ export default function ListingDetailClient({ id }: { id: string }) {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <button className="btn btn-secondary btn-full" onClick={handleVisit} disabled={visiting}>
+              <button className="btn btn-secondary btn-full" onClick={() => handleContacter('visite')} disabled={visiting}>
                 <Calendar size={16} /> {visiting ? 'Chargement…' : 'Planifier une visite'}
               </button>
-              <button className="btn btn-primary btn-full" onClick={handleContact} disabled={contacting}>
+              <button className="btn btn-primary btn-full" onClick={() => handleContacter('contact')} disabled={contacting}>
                 <MessageCircle size={16} /> {contacting ? 'Chargement…' : 'Contacter le bailleur'}
               </button>
             </div>
@@ -350,10 +347,10 @@ export default function ListingDetailClient({ id }: { id: string }) {
 
       {/* CTA mobile — fixe en bas, masqué sur desktop via CSS (.listing-cta-mobile { display: none }) */}
       <div className="listing-cta listing-cta-mobile" style={{ position: 'fixed', bottom: 'var(--bottom-nav-h)', left: 0, right: 0, background: 'var(--white)', padding: '12px 16px', gap: 10, boxShadow: '0 -2px 16px rgba(0,0,0,0.08)', zIndex: 101 }}>
-        <button className="btn btn-secondary" style={{ flex: 1 }} onClick={handleVisit} disabled={visiting}>
+        <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => handleContacter('visite')} disabled={visiting}>
           <Calendar size={16} /> {visiting ? '...' : 'Visiter'}
         </button>
-        <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleContact} disabled={contacting}>
+        <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => handleContacter('contact')} disabled={contacting}>
           <MessageCircle size={16} /> {contacting ? '...' : 'Contacter'}
         </button>
       </div>
