@@ -8,6 +8,7 @@ import { useAppStore } from '@/lib/store'
 import { useRdv } from '@/hooks/useRdv'
 import { RdvBanner } from '@/components/chat/RdvBanner'
 import { RdvFormModal } from '@/components/chat/RdvFormModal'
+import { RdvList } from '@/components/chat/RdvList'
 import { MessageBubble } from '@/components/chat/MessageBubble'
 import { ChatComposer } from '@/components/chat/ChatComposer'
 import { initiales, avatarColor } from '@/lib/utils'
@@ -36,6 +37,7 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
   const [showRdvForm, setShowRdvForm] = useState(false)
+  const [onglet, setOnglet] = useState<'messages' | 'visites'>('messages')
 
   const msgEndRef = useRef<HTMLDivElement>(null)
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
@@ -160,83 +162,114 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
         )}
       </div>
 
-      {/* Barre logement + notice sécurité */}
-      {conv.logements && (
+      {/* Onglets Messages / Visites */}
+      <div className="chat-tabs">
+        <button
+          className={`chat-tab${onglet === 'messages' ? ' active' : ''}`}
+          onClick={() => setOnglet('messages')}
+          type="button"
+        >
+          Messages
+        </button>
+        <button
+          className={`chat-tab${onglet === 'visites' ? ' active' : ''}`}
+          onClick={() => setOnglet('visites')}
+          type="button"
+        >
+          Visites
+          {rdv.rdvActif?.statut === 'en_attente' && (
+            <span className="chat-tab-badge" />
+          )}
+        </button>
+      </div>
+
+      {/* Onglet Messages */}
+      {onglet === 'messages' && (
         <>
-          <Link href={`/listing/${conv.logements.id}`} className="chat-logement-bar" style={{ textDecoration: 'none' }}>
-            <span className="chat-logement-bar-text">
-              🏠 {conv.logements.titre} · {conv.logements.ref_interne} · {conv.logements.quartier} ›
-            </span>
-          </Link>
-          <div className="security-notice">
-            🔒 Coordonnées masquées jusqu&apos;à la signature du bail
+          {/* Barre logement + notice sécurité */}
+          {conv.logements && (
+            <>
+              <Link href={`/listing/${conv.logements.id}`} className="chat-logement-bar" style={{ textDecoration: 'none' }}>
+                <span className="chat-logement-bar-text">
+                  🏠 {conv.logements.titre} · {conv.logements.ref_interne} · {conv.logements.quartier} ›
+                </span>
+              </Link>
+              <div className="security-notice">
+                🔒 Coordonnées masquées jusqu&apos;à la signature du bail
+              </div>
+            </>
+          )}
+
+          {/* Bannière RDV */}
+          {rdv.rdvActif && (
+            <div id="rdvBanniere" style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-light)' }}>
+              <RdvBanner
+                rdv={rdv.rdvActif}
+                userId={user.id}
+                onConfirmer={rdv.confirmerRdv}
+                onDemanderAnnulation={rdv.demanderAnnulation}
+                onConfirmerAnnulation={rdv.confirmerAnnulation}
+                onRefuserAnnulation={rdv.refuserAnnulation}
+                onDeclarerEffectuee={rdv.declarerEffectuee}
+              />
+            </div>
+          )}
+
+          {/* Messages */}
+          <div className="chat-col__messages" id="chatMessages">
+            {messages.length === 0 && (
+              <div style={{ textAlign: 'center', padding: 24, color: 'var(--ink-light)', fontSize: '0.875rem', fontStyle: 'italic' }}>
+                Démarrez la conversation !
+              </div>
+            )}
+            {messages.map(msg => (
+              <MessageBubble key={msg.id} msg={msg} currentUserId={user.id} />
+            ))}
+            {rdv.rdvsTermines.map(r => {
+              const labels: Record<string, string> = {
+                annule_confirme: 'Visite annulée',
+                refuse:          'Demande refusée',
+                effectue:        'Visite effectuée',
+              }
+              return (
+                <div key={r.id} className="msg msg--system" data-rdv-trace={r.id}>
+                  {labels[r.statut] || 'Visite terminée'}
+                </div>
+              )
+            })}
+            <div ref={msgEndRef} />
           </div>
+
+          {/* Modal RDV — sélecteur logement + date/heure */}
+          {showRdvForm && (
+            <RdvFormModal
+              conversationId={convId}
+              bailleurId={user.id}
+              onClose={() => setShowRdvForm(false)}
+              onSend={async (lgmtId, date, heure) => {
+                const result = await rdv.creerRdv(lgmtId, date, heure)
+                if (result) showToast('Demande de visite envoyée !', 'success')
+                else showToast('Erreur lors de la création du RDV', 'error')
+              }}
+            />
+          )}
+
+          {/* Composer */}
+          <ChatComposer
+            conversationId={convId}
+            userId={user.id}
+            destinataireId={isLocataire ? (conv.bailleur?.id || '') : (conv.locataire?.id || '')}
+            isBailleur={isBailleur}
+            peutCreerRdv={rdv.peutCreer}
+            onOpenRdvForm={() => setShowRdvForm(v => !v)}
+          />
         </>
       )}
 
-      {/* Bannière RDV */}
-      {rdv.rdvActif && (
-        <div id="rdvBanniere" style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-light)' }}>
-          <RdvBanner
-            rdv={rdv.rdvActif}
-            userId={user.id}
-            onConfirmer={rdv.confirmerRdv}
-            onDemanderAnnulation={rdv.demanderAnnulation}
-            onConfirmerAnnulation={rdv.confirmerAnnulation}
-            onRefuserAnnulation={rdv.refuserAnnulation}
-            onDeclarerEffectuee={rdv.declarerEffectuee}
-          />
-        </div>
+      {/* Onglet Visites */}
+      {onglet === 'visites' && (
+        <RdvList conversationId={convId} currentUserId={user.id} />
       )}
-
-      {/* Messages */}
-      <div className="chat-col__messages" id="chatMessages">
-        {messages.length === 0 && (
-          <div style={{ textAlign: 'center', padding: 24, color: 'var(--ink-light)', fontSize: '0.875rem', fontStyle: 'italic' }}>
-            Démarrez la conversation !
-          </div>
-        )}
-        {messages.map(msg => (
-          <MessageBubble key={msg.id} msg={msg} currentUserId={user.id} />
-        ))}
-        {rdv.rdvsTermines.map(r => {
-          const labels: Record<string, string> = {
-            annule_confirme: 'Visite annulée',
-            refuse:          'Demande refusée',
-            effectue:        'Visite effectuée',
-          }
-          return (
-            <div key={r.id} className="msg msg--system" data-rdv-trace={r.id}>
-              {labels[r.statut] || 'Visite terminée'}
-            </div>
-          )
-        })}
-        <div ref={msgEndRef} />
-      </div>
-
-      {/* Modal RDV — sélecteur logement + date/heure */}
-      {showRdvForm && conv && (
-        <RdvFormModal
-          conversationId={convId}
-          bailleurId={user.id}
-          onClose={() => setShowRdvForm(false)}
-          onSend={async (lgmtId, date, heure) => {
-            const result = await rdv.creerRdv(lgmtId, date, heure)
-            if (result) showToast('Demande de visite envoyée !', 'success')
-            else showToast('Erreur lors de la création du RDV', 'error')
-          }}
-        />
-      )}
-
-      {/* Composer */}
-      <ChatComposer
-        conversationId={convId}
-        userId={user.id}
-        destinataireId={isLocataire ? (conv.bailleur?.id || '') : (conv.locataire?.id || '')}
-        isBailleur={isBailleur}
-        peutCreerRdv={rdv.peutCreer}
-        onOpenRdvForm={() => setShowRdvForm(v => !v)}
-      />
     </div>
   )
 }
