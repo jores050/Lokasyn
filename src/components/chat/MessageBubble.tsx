@@ -65,7 +65,7 @@ export function MessageBubble({ msg, currentUserId }: MessageBubbleProps) {
   }
 
   // Recommandation de logement
-  if (msg.type === 'reco_logement') {
+  if (msg.type === 'recommandation_logement') {
     const logementId = String(meta.logement_id || '')
     return (
       <div className={isMine ? 'msg--me' : 'msg--them'} style={{ maxWidth: '85%', alignSelf: isMine ? 'flex-end' : 'flex-start' }}>

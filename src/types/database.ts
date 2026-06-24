@@ -95,7 +95,7 @@ export interface Message {
   conversation_id: string
   expediteur_id: string
   contenu: string
-  type: 'texte' | 'image' | 'systeme' | 'rdv_demande' | 'rdv_confirme' | 'rdv_programmation' | 'annulation_demandee' | 'visite_declaree' | 'lien_paiement' | 'reco_logement'
+  type: 'texte' | 'image' | 'systeme' | 'rdv_demande' | 'rdv_confirme' | 'rdv_programmation' | 'annulation_demandee' | 'visite_declaree' | 'lien_paiement' | 'recommandation_logement'
   metadata?: Record<string, unknown>
   lu: boolean
   created_at: string

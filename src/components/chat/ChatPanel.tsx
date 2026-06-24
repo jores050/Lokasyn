@@ -302,7 +302,7 @@ export function ChatPanel({ convId, onBack }: ChatPanelProps) {
                   conversation_id: convId,
                   expediteur_id: user.id,
                   contenu: `Logement recommandé : ${logement.titre}`,
-                  type: 'reco_logement',
+                  type: 'recommandation_logement',
                   metadata: {
                     logement_id: logement.id,
                     titre: logement.titre,
