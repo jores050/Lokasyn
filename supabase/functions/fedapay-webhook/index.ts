@@ -107,8 +107,8 @@ serve(async (req) => {
     }
 
     const redirectUrl = confirmed
-      ? `${appUrl}/messages?paiement=confirme`
-      : `${appUrl}/messages?paiement=annule`
+      ? `${appUrl}/paiement/retour?status=confirme`
+      : `${appUrl}/paiement/retour?status=annule`
     return new Response(null, { status: 302, headers: { Location: redirectUrl } })
   }
 

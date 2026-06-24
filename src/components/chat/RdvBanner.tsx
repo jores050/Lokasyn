@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Calendar, BadgeCheck, AlertCircle, CheckCircle, Clock, ShieldCheck } from 'lucide-react'
 import { formatFCFA } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -36,10 +36,25 @@ export function RdvBanner({
 
   const { openPayment } = useFedaPay()
   const [loading, setLoading] = useState(false)
+  const [iframeUrl, setIframeUrl] = useState<string | null>(null)
 
   const frais = rdv.prix_visite ?? (rdv as any).logements?.prix_visite ?? 0
   const commission = frais > 0 ? (frais <= 1000 ? 100 : Math.round(frais * 0.10)) : 0
   const total = frais + commission
+
+  useEffect(() => {
+    function onMessage(e: MessageEvent) {
+      if (e.data?.type !== 'fedapay_retour') return
+      setIframeUrl(null)
+      if (e.data.status === 'confirme') {
+        showToast(`Paiement de ${formatFCFA(total)} confirmé — visite en attente de confirmation`)
+      } else {
+        showToast('Paiement annulé', 'error')
+      }
+    }
+    window.addEventListener('message', onMessage)
+    return () => window.removeEventListener('message', onMessage)
+  }, [total])
 
   async function handlePayer() {
     setLoading(true)
@@ -54,7 +69,7 @@ export function RdvBanner({
       }
       if (data.gratuit) return // realtime mettra à jour l'UI
       const paymentUrl = data.payment_url || `https://sandbox-checkout.fedapay.com/${data.token}`
-      window.location.href = paymentUrl
+      setIframeUrl(paymentUrl)
     } finally {
       setLoading(false)
     }
@@ -181,5 +196,33 @@ export function RdvBanner({
     )
   }
 
-  return null
+  return (
+    <>
+      {iframeUrl && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: 'rgba(0,0,0,0.6)',
+          display: 'flex', flexDirection: 'column',
+        }}>
+          <div style={{
+            background: '#fff', display: 'flex', alignItems: 'center',
+            justifyContent: 'space-between', padding: '10px 16px',
+            borderBottom: '1px solid #e5e7eb',
+          }}>
+            <span style={{ fontWeight: 600, fontSize: '0.9375rem' }}>Paiement sécurisé</span>
+            <button
+              onClick={() => setIframeUrl(null)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: '#6b7280' }}
+              aria-label="Fermer"
+            >✕</button>
+          </div>
+          <iframe
+            src={iframeUrl}
+            style={{ flex: 1, border: 'none', width: '100%' }}
+            title="Paiement FedaPay"
+          />
+        </div>
+      )}
+    </>
+  )
 }
