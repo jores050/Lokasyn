@@ -80,8 +80,9 @@ export function sanitizeMessage(text: string): string {
 }
 
 export function validateTelBenin(tel: string): boolean {
-  const cleaned = tel.replace(/[\s\-.]/g, '')
-  return /^(\+229|00229)?[0-9]{8}$/.test(cleaned)
+  const cleaned = tel.replace(/[\s\-.()]/g, '')
+  // Accepte : 8 chiffres, 10 chiffres (nouvelles SIM), ou avec préfixe 229/+229/00229
+  return /^(\+?229|00229)?(\d{8}|\d{10})$/.test(cleaned)
 }
 
 // ----------------------------------------------------------------

@@ -28,6 +28,7 @@ function AuthContent() {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null)
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [telDigits, setTelDigits] = useState('')
 
   const redirect = searchParams.get('redirect') || '/'
   const supabase = createClient()
@@ -67,15 +68,23 @@ function AuthContent() {
     const form = e.currentTarget
     const prenom = (form.elements.namedItem('prenom') as HTMLInputElement).value.trim()
     const nom = (form.elements.namedItem('nom') as HTMLInputElement).value.trim()
-    const telephone = (form.elements.namedItem('telephone') as HTMLInputElement).value.trim()
     const email = (form.elements.namedItem('email') as HTMLInputElement).value.trim()
     const password = (form.elements.namedItem('password') as HTMLInputElement).value
 
+    // Téléphone : les chiffres saisis (8 ou 10), stocké en base sous 229XXXXXXXX
+    const telRaw = telDigits.replace(/\D/g, '')
+    let telephone: string | null = null
     let valid = true
+
     if (!prenom) { setError('prenom', 'Prénom requis'); valid = false }
     if (!nom) { setError('nom', 'Nom requis'); valid = false }
-    if (telephone && !validateTelBenin(telephone)) {
-      setError('telephone', 'Format: +229 XX XX XX XX'); valid = false
+    if (telRaw) {
+      if (telRaw.length !== 8 && telRaw.length !== 10) {
+        setError('telephone', 'Saisissez 8 chiffres (ex: 97001234) ou 10 (ex: 0197001234)')
+        valid = false
+      } else {
+        telephone = `229${telRaw}`
+      }
     }
     if (password.length < 8) { setError('password', 'Minimum 8 caractères'); valid = false }
     if (!valid) return
@@ -84,23 +93,26 @@ function AuthContent() {
     const { data, error } = await supabase.auth.signUp({
       email, password,
       options: {
-        data: { nom, prenom, telephone: telephone || null, role: selectedRole || 'locataire' },
+        emailRedirectTo: `${window.location.origin}/auth/confirm`,
+        data: { nom, prenom, telephone, role: selectedRole || 'locataire' },
       },
     })
 
     if (error) { setLoading(false); setError('email', error.message); return }
 
-    if (data.user) {
+    if (data.user && data.session) {
+      // Email confirm désactivé → profil créé immédiatement
       await supabase.from('profiles').upsert({
         id: data.user.id, nom, prenom,
-        telephone: telephone || null,
+        telephone,
         role: selectedRole || 'locataire',
       })
       setLoading(false)
       await afterAuth(data.user.id)
     } else {
+      // Email confirm activé → attendre la vérification
       setLoading(false)
-      showToast('Vérifiez votre email pour confirmer votre compte.', 'success', 6000)
+      showToast('Vérifiez votre email — un lien de confirmation vous a été envoyé', 'success', 8000)
       setView('login')
     }
   }
@@ -186,9 +198,21 @@ function AuthContent() {
             </div>
             <div className="form-group">
               <label className="form-label">Téléphone</label>
-              <div className="input-wrapper">
-                <span className="input-icon"><Phone size={14} /></span>
-                <input className="form-input" name="telephone" type="tel" placeholder="+229 97 00 00 00" autoComplete="tel" />
+              <div style={{ display: 'flex', alignItems: 'stretch', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-xs)', overflow: 'hidden', background: 'var(--color-white)' }}>
+                <span style={{ display: 'flex', alignItems: 'center', padding: '0 10px', background: 'var(--color-neutral-50)', borderRight: '1px solid var(--color-border)', color: 'var(--color-ink-soft)', fontSize: '0.875rem', fontWeight: 500, flexShrink: 0, gap: 4 }}>
+                  <Phone size={13} />&nbsp;+229
+                </span>
+                <input
+                  className="form-input"
+                  name="telephone"
+                  type="tel"
+                  inputMode="numeric"
+                  placeholder="97 00 00 00"
+                  value={telDigits}
+                  onChange={e => setTelDigits(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  autoComplete="tel"
+                  style={{ border: 'none', borderRadius: 0, flex: 1, boxShadow: 'none' }}
+                />
               </div>
               {errors.telephone && <span className="form-error show">{errors.telephone}</span>}
             </div>
