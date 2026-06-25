@@ -188,12 +188,12 @@ function AuthContent() {
               <div className="form-group">
                 <label className="form-label">Prénom</label>
                 <input className="form-input" name="prenom" type="text" placeholder="Jean" required autoComplete="given-name" />
-                {errors.prenom && <span className="form-error show">{errors.prenom}</span>}
+                {errors.prenom ? <span className="form-error show">{errors.prenom}</span> : null}
               </div>
               <div className="form-group">
                 <label className="form-label">Nom</label>
                 <input className="form-input" name="nom" type="text" placeholder="Kouassi" required autoComplete="family-name" />
-                {errors.nom && <span className="form-error show">{errors.nom}</span>}
+                {errors.nom ? <span className="form-error show">{errors.nom}</span> : null}
               </div>
             </div>
             <div className="form-group">
@@ -214,7 +214,7 @@ function AuthContent() {
                   style={{ border: 'none', borderRadius: 0, flex: 1, boxShadow: 'none' }}
                 />
               </div>
-              {errors.telephone && <span className="form-error show">{errors.telephone}</span>}
+              {errors.telephone ? <span className="form-error show">{errors.telephone}</span> : null}
             </div>
             <div className="form-group">
               <label className="form-label">Email</label>
@@ -222,7 +222,7 @@ function AuthContent() {
                 <span className="input-icon"><Mail size={14} /></span>
                 <input className="form-input" name="email" type="email" placeholder="jean@exemple.com" required autoComplete="email" />
               </div>
-              {errors.email && <span className="form-error show">{errors.email}</span>}
+              {errors.email ? <span className="form-error show">{errors.email}</span> : null}
             </div>
             <div className="form-group">
               <label className="form-label">Mot de passe</label>
@@ -230,7 +230,7 @@ function AuthContent() {
                 <span className="input-icon"><Lock size={14} /></span>
                 <input className="form-input" name="password" type="password" placeholder="Min. 8 caractères" required autoComplete="new-password" minLength={8} />
               </div>
-              {errors.password && <span className="form-error show">{errors.password}</span>}
+              {errors.password ? <span className="form-error show">{errors.password}</span> : null}
             </div>
             <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
               {loading ? '...' : 'Créer mon compte'}
