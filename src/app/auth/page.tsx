@@ -38,13 +38,17 @@ function AuthContent() {
     setErrors(prev => ({ ...prev, [field]: msg }))
   }
 
-  async function afterAuth(userId: string) {
+  async function afterAuth(userId: string, emailFallback = '') {
     const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
     if (data) {
       setProfile(data as Profile)
-      setUser({ id: userId, email: data.email || '' })
+      setUser({ id: userId, email: data.email || emailFallback })
+    } else {
+      // Profil absent (ex: trigger SQL pas encore exécuté) mais auth réussie
+      setUser({ id: userId, email: emailFallback })
     }
-    router.push(redirect)
+    const redirectTo = searchParams.get('redirect') || '/'
+    router.replace(redirectTo)
   }
 
   async function handleLogin(e: FormEvent<HTMLFormElement>) {
@@ -69,7 +73,7 @@ function AuthContent() {
       }
       return
     }
-    if (data.user) await afterAuth(data.user.id)
+    if (data.user) await afterAuth(data.user.id, data.user.email ?? email)
   }
 
   async function handleRegister(e: FormEvent<HTMLFormElement>) {
@@ -118,7 +122,7 @@ function AuthContent() {
         role: selectedRole || 'locataire',
       })
       setLoading(false)
-      await afterAuth(data.user.id)
+      await afterAuth(data.user.id, data.user.email ?? email)
     } else {
       // Email confirm activé → page d'attente dédiée
       setLoading(false)
