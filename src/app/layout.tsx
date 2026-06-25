@@ -38,6 +38,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: `(function(){try{var t=localStorage.getItem('lokasyn-theme');if(!t){t=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`,
           }}
         />
+        {/* iOS PWA — barre système adaptée au thème */}
+        <meta name="theme-color" content="#0F5132" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#0D1F17" media="(prefers-color-scheme: dark)" />
       </head>
       <body>
         <ThemeProvider>

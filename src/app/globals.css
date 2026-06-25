@@ -193,6 +193,16 @@
   --color-red-tint:  rgba(178, 58, 46, 0.22);
   --color-gold-tint: rgba(201, 154, 62, 0.15);
 
+  --color-bg-tooltip:  #213D2C;
+
+  --color-neutral-500: #6B7F6E;
+  --color-neutral-900: #F0EBE3;
+
+  --color-success: #4CAF50;
+  --color-error:   #EF5350;
+  --color-warning: #FFB74D;
+  --color-info:    #42A5F5;
+
   --shadow-sm:       0 1px 2px rgba(0, 0, 0, 0.30);
   --shadow-md:       0 2px 8px rgba(0, 0, 0, 0.40);
   --shadow-lg:       0 8px 24px rgba(0, 0, 0, 0.50);
@@ -254,6 +264,178 @@ body,
 .theme-toggle-btn:hover {
   background: var(--color-bg-alt);
   color: var(--color-ink);
+}
+
+/* ================================================================
+   DARK MODE — COMPOSANTS
+   ================================================================ */
+
+/* Toggle pill (profil) */
+.theme-toggle-pill {
+  width: 44px;
+  height: 24px;
+  background: var(--color-border-mid);
+  border-radius: var(--radius-pill);
+  position: relative;
+  transition: background var(--transition-micro);
+  flex-shrink: 0;
+}
+.theme-toggle-pill.active { background: var(--color-green); }
+.theme-toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: transform var(--transition-micro);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.theme-toggle-pill.active .theme-toggle-knob { transform: translateX(20px); }
+
+/* Listing cards */
+[data-theme="dark"] .listing-card {
+  background: var(--color-bg-alt);
+  border-color: var(--color-border);
+}
+[data-theme="dark"] .listing-card:hover {
+  box-shadow: var(--shadow-card);
+  border-color: var(--color-border-mid);
+}
+
+/* Inputs */
+[data-theme="dark"] .form-input,
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="email"],
+[data-theme="dark"] input[type="password"],
+[data-theme="dark"] input[type="number"],
+[data-theme="dark"] input[type="tel"],
+[data-theme="dark"] input[type="search"],
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background: var(--color-bg-alt);
+  border-color: var(--color-border);
+  color: var(--color-ink);
+}
+[data-theme="dark"] .form-input:focus,
+[data-theme="dark"] input:focus,
+[data-theme="dark"] textarea:focus,
+[data-theme="dark"] select:focus {
+  border-color: var(--color-green);
+  border-width: 2px;
+}
+[data-theme="dark"] .form-input::placeholder,
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: var(--color-ink-faint);
+}
+
+/* Bottom nav */
+[data-theme="dark"] .bottom-nav {
+  background: var(--color-bg-alt);
+  border-top-color: var(--color-border);
+}
+
+/* Sidebar */
+[data-theme="dark"] .sidebar-nav {
+  background: var(--color-bg);
+  border-right-color: var(--color-border);
+}
+[data-theme="dark"] .sidebar-nav-item:hover {
+  background: var(--color-green-tint);
+}
+[data-theme="dark"] .sidebar-nav-item.active {
+  background: var(--color-green-tint);
+}
+[data-theme="dark"] .sidebar-logo span,
+[data-theme="dark"] .navbar-logo span {
+  color: var(--color-clay);
+}
+
+/* Chat */
+[data-theme="dark"] .chat-col {
+  background: var(--color-bg);
+}
+[data-theme="dark"] .chat-col__header {
+  background: var(--color-bg-alt);
+  border-bottom-color: var(--color-border);
+}
+[data-theme="dark"] .chat-col__composer {
+  background: var(--color-bg-alt);
+  border-top-color: var(--color-border);
+}
+[data-theme="dark"] .chat-input {
+  background: var(--color-bg-elevated);
+  border-color: var(--color-border);
+  color: var(--color-ink);
+}
+[data-theme="dark"] .msg--me {
+  background: #0F5132;
+  color: #F0EBE3;
+}
+[data-theme="dark"] .msg--them {
+  background: var(--color-bg-elevated);
+  color: var(--color-ink);
+}
+[data-theme="dark"] .conversations-col {
+  background: var(--color-bg-alt);
+  border-right-color: var(--color-border);
+}
+
+/* RDV bannière */
+[data-theme="dark"] .rdv-banniere {
+  background: var(--color-bg-alt);
+  border-color: var(--color-border);
+}
+[data-theme="dark"] .rdv-banniere-body {
+  border-top-color: var(--color-border);
+}
+[data-theme="dark"] .rdv-banniere-card {
+  background: var(--color-bg-elevated);
+  border-color: var(--color-border);
+}
+
+/* Badges */
+[data-theme="dark"] .badge-student {
+  border-color: var(--color-green);
+  color: var(--color-green);
+  background: transparent;
+}
+[data-theme="dark"] .badge-furnished,
+[data-theme="dark"] .badge-ink {
+  background: var(--color-bg-elevated);
+  color: var(--color-ink-soft);
+}
+
+/* Modal / bottom sheet */
+[data-theme="dark"] .modal-sheet,
+[data-theme="dark"] .bottom-sheet {
+  background: var(--color-bg-alt);
+}
+[data-theme="dark"] .modal-handle {
+  background: var(--color-border);
+}
+
+/* Hero home */
+[data-theme="dark"] .home-hero {
+  background: #0A3D22;
+}
+[data-theme="dark"] .home-hero::before,
+[data-theme="dark"] .home-hero::after {
+  opacity: 0.15;
+}
+
+/* Skeleton shimmer dark */
+[data-theme="dark"] .skeleton {
+  background: linear-gradient(
+    90deg,
+    #1C3526 25%,
+    #213D2C 50%,
+    #1C3526 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }
 
 /* ================================================================
