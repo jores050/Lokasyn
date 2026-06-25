@@ -26,34 +26,83 @@ async function confirmerPaiement(supabase: ReturnType<typeof createClient>, paie
     .update({ statut: 'confirme', confirme_le: new Date().toISOString(), paiement_id })
     .eq('id', rdv_id)
 
-  // Notifications (non bloquant)
+  // Notifications + message système + push (tout non bloquant)
   try {
     const { data: rdv } = await supabase
       .from('rendez_vous')
-      .select('demandeur_id, bailleur_id, date_visite, heure_visite, logements(titre)')
+      .select(`
+        demandeur_id, bailleur_id, conversation_id,
+        date_visite, heure_visite,
+        logements(titre, quartier),
+        demandeur:profiles!demandeur_id(nom, prenom)
+      `)
       .eq('id', rdv_id)
       .single()
 
-    if (rdv) {
-      await supabase.from('notifications').insert([
-        {
-          utilisateur_id: rdv.demandeur_id,
-          type: 'visite_confirmee',
-          titre: 'Visite confirmée',
-          corps: `Votre visite du ${rdv.date_visite} à ${rdv.heure_visite} est confirmée`,
-          lien: '/chat'
+    if (!rdv) return
+
+    const locataireNom = (rdv.demandeur as any)
+      ? `${(rdv.demandeur as any).prenom ?? ''} ${(rdv.demandeur as any).nom ?? ''}`.trim()
+      : 'Le locataire'
+    const logementTitre   = (rdv.logements as any)?.titre   || 'le logement'
+    const logementQuartier = (rdv.logements as any)?.quartier || ''
+
+    // 1. Notifications in-app pour les deux participants
+    await supabase.from('notifications').insert([
+      {
+        utilisateur_id: rdv.demandeur_id,
+        type: 'visite_confirmee',
+        titre: 'Visite confirmée',
+        corps: `Votre visite du ${rdv.date_visite} à ${rdv.heure_visite} est confirmée`,
+        lien: rdv.conversation_id ? `/chat/${rdv.conversation_id}` : '/messages',
+      },
+      {
+        utilisateur_id: rdv.bailleur_id,
+        type: 'paiement_recu',
+        titre: 'Paiement reçu',
+        corps: `${locataireNom} a payé les frais de visite pour ${logementTitre}`,
+        lien: rdv.conversation_id ? `/chat/${rdv.conversation_id}` : '/messages',
+      },
+    ])
+
+    // 2. Message système dans la conversation
+    if (rdv.conversation_id) {
+      const { data: paiement } = await supabase
+        .from('paiements')
+        .select('montant')
+        .eq('id', paiement_id)
+        .single()
+
+      await supabase.from('messages').insert({
+        conversation_id: rdv.conversation_id,
+        expediteur_id: rdv.demandeur_id, // locataire = auteur du paiement
+        contenu: '✅ Frais de visite payés avec succès — la visite est confirmée',
+        type: 'systeme',
+        metadata: {
+          rdv_id,
+          montant: (paiement as any)?.montant ?? null,
+          locataire_nom: locataireNom,
         },
-        {
-          utilisateur_id: rdv.bailleur_id,
-          type: 'visite_confirmee',
-          titre: 'Nouvelle visite confirmée',
-          corps: `Une visite a été confirmée pour ${(rdv.logements as any)?.titre}`,
-          lien: '/chat'
-        }
-      ])
+      })
     }
+
+    // 3. Web Push au bailleur
+    try {
+      await supabase.functions.invoke('send-push-notification', {
+        body: {
+          destinataire_id: rdv.bailleur_id,
+          titre: 'Paiement reçu 💰',
+          corps: `${locataireNom} a payé les frais de visite pour ${logementQuartier || logementTitre}`,
+          url: rdv.conversation_id ? `/chat/${rdv.conversation_id}` : '/messages',
+          conversation_id: rdv.conversation_id,
+        },
+      })
+    } catch (pushErr) {
+      console.error('[WEBHOOK FEDAPAY] Erreur push (non bloquant):', pushErr)
+    }
+
   } catch (e) {
-    console.error('[WEBHOOK FEDAPAY] Erreur notifications (non bloquant):', e)
+    console.error('[WEBHOOK FEDAPAY] Erreur post-paiement (non bloquant):', e)
   }
 }
 
