@@ -1,8 +1,13 @@
 // ----------------------------------------------------------------
 // Formatage monétaire
 // ----------------------------------------------------------------
-export const formatFCFA = (n: number) =>
-  new Intl.NumberFormat('fr-FR').format(Math.round(n || 0)) + ' FCFA'
+export function formatFCFA(montant: number): string {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'decimal',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(Math.round(montant || 0)) + ' FCFA'
+}
 
 export const formatFCFACompact = (n: number): string => {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)} M FCFA`

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Fraunces, Inter } from 'next/font/google'
+import { Lora, Inter } from 'next/font/google'
 import './globals.css'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { BottomNav } from '@/components/layout/BottomNav'
@@ -9,8 +9,18 @@ import { OfflineBanner } from '@/components/layout/OfflineBanner'
 import { ServiceWorkerRegistrar } from '@/components/layout/ServiceWorkerRegistrar'
 import { ThemeProvider } from '@/components/layout/ThemeProvider'
 
-const fraunces = Fraunces({ subsets: ['latin'], variable: '--font-display' })
-const inter = Inter({ subsets: ['latin'], variable: '--font-body' })
+const lora = Lora({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-display',
+  display: 'swap',
+})
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-body',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'LokaSyn — Logements au Bénin',
@@ -20,7 +30,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={`${fraunces.variable} ${inter.variable}`} suppressHydrationWarning>
+    <html lang="fr" className={`${lora.variable} ${inter.variable}`} suppressHydrationWarning>
       <head>
         {/* No-FOUC : applique le thème avant le premier paint */}
         <script
