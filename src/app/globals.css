@@ -4501,6 +4501,67 @@ p { color: var(--color-ink-soft); line-height: var(--lh-relaxed); }
 .rdv-decline:hover { border-color: var(--ink-mid); color: var(--ink); }
 
 /* ================================================================
+   CARD RDV DANS LE FLUX CHAT (proposition de visite)
+   ================================================================ */
+.msg-rdv-card-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 4px 16px;
+}
+
+.rdv-card-chat {
+  background: var(--color-green-tint);
+  border: 1px solid var(--color-green);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  max-width: 320px;
+  width: 100%;
+}
+
+.rdv-card-chat-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--color-green);
+  margin-bottom: 8px;
+}
+
+.rdv-card-chat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.rdv-card-chat-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: var(--fs-sm);
+  color: var(--color-ink);
+  line-height: 1.4;
+}
+
+.rdv-card-chat-row svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--color-ink-soft);
+}
+
+.rdv-card-chat-prix {
+  margin-top: 4px;
+  font-size: var(--fs-sm);
+  color: var(--color-clay);
+  font-weight: 500;
+}
+
+[data-theme="dark"] .rdv-card-chat {
+  background: rgba(76, 175, 80, 0.08);
+  border-color: var(--color-green);
+}
+
+/* ================================================================
    BANNIÈRE RDV ÉPINGLÉE (entre .chat-col__messages et .chat-col__composer)
    ================================================================ */
 .rdv-banniere {

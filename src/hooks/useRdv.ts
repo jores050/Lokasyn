@@ -242,7 +242,7 @@ export function useRdv(conversationId: string, userId: string | undefined) {
     if (!conv) return null
 
     const { data: logement } = await supabase
-      .from('logements').select('prix_visite').eq('id', logementId).single()
+      .from('logements').select('prix_visite, titre, quartier, adresse_complete').eq('id', logementId).single()
 
     const { data: rdv, error: rdvError } = await supabase.from('rendez_vous').insert({
       conversation_id: conversationId,
@@ -258,9 +258,20 @@ export function useRdv(conversationId: string, userId: string | undefined) {
 
     if (rdv) {
       await supabase.from('messages').insert({
-        conversation_id: conversationId, expediteur_id: userId,
-        contenu: `Demande de visite : ${date} à ${heure}`, type: 'rdv_programmation',
-        metadata: { logement_id: logementId, date_visite: date, heure_visite: heure },
+        conversation_id: conversationId,
+        expediteur_id: userId,
+        contenu: `Demande de visite : ${date} à ${heure}`,
+        type: 'rdv_programmation',
+        metadata: {
+          rdv_id: rdv.id,
+          logement_id: logementId,
+          logement_titre: logement?.titre ?? null,
+          logement_quartier: logement?.quartier ?? null,
+          logement_adresse: logement?.adresse_complete ?? null,
+          date_visite: date,
+          heure_visite: heure,
+          prix_visite: logement?.prix_visite ?? 0,
+        },
       })
     }
     return rdv

@@ -1,5 +1,6 @@
 import { Wallet, Check, Home } from 'lucide-react'
 import { dateRelative, formatFCFA } from '@/lib/utils'
+import { RdvCard } from '@/components/chat/RdvCard'
 import type { Message } from '@/types/database'
 
 function formatDateFr(dateStr: string): string {
@@ -9,9 +10,11 @@ function formatDateFr(dateStr: string): string {
   return `${parseInt(d, 10)} ${mois[parseInt(m, 10) - 1]} ${y}`
 }
 
-// Types gérés par la bannière épinglée — ne pas afficher dans le flux
+// Types gérés uniquement par la bannière épinglée — pas de doublon dans le flux
+// rdv_programmation est intentionnellement HORS de cette liste :
+// il s'affiche comme RdvCard dans le flux, en plus de la bannière.
 const TYPES_BANNIERE = new Set([
-  'rdv_programmation', 'rdv_confirme', 'rdv_confirme_gratuit',
+  'rdv_confirme', 'rdv_confirme_gratuit',
   'rdv_demande', 'annulation_demandee', 'visite_declaree', 'systeme_rdv',
 ])
 
@@ -40,6 +43,23 @@ export function MessageBubble({ msg, currentUserId, isLastMine }: MessageBubbleP
 
   // Types gérés par la bannière — ne pas dupliquer dans le flux
   if (TYPES_BANNIERE.has(msg.type)) return null
+
+  // Proposition de visite (RDV) — card centrée dans le flux
+  if (msg.type === 'rdv_programmation') {
+    return (
+      <div className="msg-rdv-card-wrap">
+        <RdvCard
+          date={String(meta.date_visite || '')}
+          heure={String(meta.heure_visite || '')}
+          logementTitre={meta.logement_titre != null ? String(meta.logement_titre) : null}
+          logementQuartier={meta.logement_quartier != null ? String(meta.logement_quartier) : null}
+          logementAdresse={meta.logement_adresse != null ? String(meta.logement_adresse) : null}
+          prixVisite={meta.prix_visite != null ? Number(meta.prix_visite) : null}
+          time={time}
+        />
+      </div>
+    )
+  }
 
   // Lien paiement
   if (msg.type === 'lien_paiement') {
