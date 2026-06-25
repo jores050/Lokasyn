@@ -111,7 +111,14 @@ function AuthContent() {
       },
     })
 
-    if (error) { setLoading(false); setError('email', error.message); return }
+    if (error) {
+      setLoading(false)
+      const msg = typeof error.message === 'string' && error.message
+        ? error.message
+        : 'Une erreur est survenue, veuillez réessayer.'
+      setError('email', msg)
+      return
+    }
 
     if (data.user && data.session) {
       // Email confirm désactivé → profil créé immédiatement
