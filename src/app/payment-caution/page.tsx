@@ -19,7 +19,7 @@ declare global {
 type Screen = 'form' | 'success' | 'error'
 
 function PaymentCautionContent() {
-  const { user } = useAppStore()
+  const { user, isAuthChecked } = useAppStore()
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -44,9 +44,10 @@ function PaymentCautionContent() {
   const supabase = createClient()
 
   useEffect(() => {
+    if (!isAuthChecked) return
     if (!user?.id) { router.push(`/auth?redirect=/payment-caution${window.location.search}`); return }
     loadLogement()
-  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.id, isAuthChecked]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadLogement() {
     if (bailId) {

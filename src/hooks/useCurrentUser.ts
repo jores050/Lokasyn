@@ -6,7 +6,7 @@ import { useAppStore } from '@/lib/store'
 import type { Profile } from '@/types/database'
 
 export function useCurrentUser() {
-  const { user, profile, setUser, setProfile, setUnreadCount } = useAppStore()
+  const { user, profile, setUser, setProfile, setUnreadCount, setAuthChecked } = useAppStore()
   const channelRef = useRef<ReturnType<ReturnType<typeof createClient>['channel']> | null>(null)
 
   async function chargerUnread(userId: string) {
@@ -32,7 +32,6 @@ export function useCurrentUser() {
 
         chargerUnread(uid)
 
-        // Realtime : badge se met à jour instantanément à chaque INSERT ou UPDATE
         channelRef.current = supabase
           .channel(`notif-badge:${uid}`)
           .on('postgres_changes', {
@@ -41,6 +40,8 @@ export function useCurrentUser() {
           }, () => chargerUnread(uid))
           .subscribe()
       }
+      // Marquer l'auth comme vérifiée — qu'il y ait session ou non
+      setAuthChecked()
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -59,7 +60,7 @@ export function useCurrentUser() {
       subscription.unsubscribe()
       if (channelRef.current) { supabase.removeChannel(channelRef.current); channelRef.current = null }
     }
-  }, [setUser, setProfile, setUnreadCount]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [setUser, setProfile, setUnreadCount, setAuthChecked]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return { user, profile, isLoading: user === null && profile === null }
 }

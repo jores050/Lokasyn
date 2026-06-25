@@ -16,7 +16,7 @@ const STATUT_CLASS: Record<string, string> = {
 }
 
 function PaymentLoyerContent() {
-  const { user } = useAppStore()
+  const { user, isAuthChecked } = useAppStore()
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -40,9 +40,10 @@ function PaymentLoyerContent() {
   const supabase = createClient()
 
   useEffect(() => {
+    if (!isAuthChecked) return
     if (!user?.id) { router.push(`/auth?redirect=/payment-loyer${window.location.search}`); return }
     decodeAndLoad()
-  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.id, isAuthChecked]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function decodeAndLoad() {
     let bid = bailId, m = mois, mt = montant

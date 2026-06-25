@@ -9,12 +9,13 @@ import { ListingCard } from '@/components/listing/ListingCard'
 import type { Logement } from '@/types/database'
 
 export default function FavorisPage() {
-  const { user } = useAppStore()
+  const { user, isAuthChecked } = useAppStore()
   const supabase = createClient()
   const [favoris, setFavoris] = useState<Logement[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!isAuthChecked) return
     if (!user?.id) { setLoading(false); return }
     supabase
       .from('favoris')
@@ -27,8 +28,9 @@ export default function FavorisPage() {
         setFavoris(list)
         setLoading(false)
       })
-  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.id, isAuthChecked]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  if (!isAuthChecked) return null
   if (!user?.id) return (
     <div className="favoris-screen">
       <div className="empty-state" style={{ paddingTop: 60 }}>

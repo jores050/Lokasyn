@@ -10,9 +10,11 @@ interface AppState {
   profile: Profile | null
   unreadCount: number
   favorites: Set<string>
+  isAuthChecked: boolean
   setUser: (user: AppState['user']) => void
   setProfile: (profile: Profile | null) => void
   setUnreadCount: (n: number) => void
+  setAuthChecked: () => void
   toggleFavorite: (id: string) => boolean
   loadFavorites: (ids: string[]) => void
   isFavorite: (id: string) => boolean
@@ -23,10 +25,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   profile: null,
   unreadCount: 0,
   favorites: new Set(),
+  isAuthChecked: false,
 
   setUser: (user) => set({ user }),
   setProfile: (profile) => set({ profile }),
   setUnreadCount: (n) => set({ unreadCount: n }),
+  setAuthChecked: () => set({ isAuthChecked: true }),
 
   toggleFavorite: (id) => {
     const favs = new Set(get().favorites)

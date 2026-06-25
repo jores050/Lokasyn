@@ -31,7 +31,7 @@ function fmtDate(s: string) {
 }
 
 export default function SoldePage() {
-  const { user } = useAppStore()
+  const { user, isAuthChecked } = useAppStore()
   const supabase = createClient()
 
   const [solde, setSolde] = useState<Solde | null>(null)
@@ -56,7 +56,7 @@ export default function SoldePage() {
     setLoading(false)
   }
 
-  useEffect(() => { charger() }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (isAuthChecked) charger() }, [user?.id, isAuthChecked]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function soumettreRetrait() {
     const montant = parseInt(retraitForm.montant)

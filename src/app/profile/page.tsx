@@ -30,7 +30,7 @@ const ROLE_ICONS = {
 }
 
 export default function ProfilePage() {
-  const { user, profile, setUser, setProfile } = useAppStore()
+  const { user, profile, setUser, setProfile, isAuthChecked } = useAppStore()
   const router = useRouter()
   const supabase = createClient()
   const [stats, setStats] = useState<Stats>({})
@@ -38,9 +38,10 @@ export default function ProfilePage() {
   const { permission, isSupported, demanderPermission } = usePushNotifications(user?.id ?? null)
 
   useEffect(() => {
+    if (!isAuthChecked) return
     if (!user?.id) { router.push('/auth?redirect=/profile'); return }
     loadStats()
-  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.id, isAuthChecked]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadStats() {
     if (!user?.id || !profile) { setLoading(false); return }

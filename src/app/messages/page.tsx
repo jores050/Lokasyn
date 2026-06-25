@@ -8,7 +8,7 @@ import { ConversationsList } from '@/components/chat/ConversationsList'
 import { ChatPanel } from '@/components/chat/ChatPanel'
 
 export default function MessagesPage() {
-  const { user } = useAppStore()
+  const { user, isAuthChecked } = useAppStore()
   const [activeConvId, setActiveConvId] = useState<string | null>(null)
   const [isDesktop, setIsDesktop] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -30,6 +30,8 @@ export default function MessagesPage() {
       </div>
     )
   }
+
+  if (!isAuthChecked) return null
 
   if (!user?.id) {
     return (

@@ -31,7 +31,7 @@ function fmtDate(s: string) {
 }
 
 export default function ContratsPage() {
-  const { user, profile } = useAppStore()
+  const { user, profile, isAuthChecked } = useAppStore()
   const supabase = createClient()
   const [baux, setBaux] = useState<Bail[]>([])
   const [loading, setLoading] = useState(true)
@@ -39,7 +39,7 @@ export default function ContratsPage() {
   const isBailleur = profile?.role === 'bailleur' || profile?.role === 'agence'
 
   useEffect(() => {
-    if (!user?.id) return
+    if (!isAuthChecked || !user?.id) return
     supabase.from('baux')
       .select(`id, loyer_mensuel, caution_montant, date_debut, date_fin, statut, contrat_pdf_url,
         logements(titre, quartier),
@@ -51,7 +51,7 @@ export default function ContratsPage() {
         setBaux((data || []) as unknown as Bail[])
         setLoading(false)
       })
-  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.id, isAuthChecked]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function genContrat(bailId: string) {
     showToast('Génération du contrat en cours…', 'info')

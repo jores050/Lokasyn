@@ -17,14 +17,14 @@ const STATUT_LABELS: Record<string, { label: string; cls: string }> = {
 }
 
 export default function MesAnnoncesPage() {
-  const { user } = useAppStore()
+  const { user, isAuthChecked } = useAppStore()
   const supabase = createClient()
   const [annonces, setAnnonces] = useState<Logement[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!user?.id) return
+    if (!isAuthChecked || !user?.id) return
     supabase.from('logements')
       .select('*').eq('bailleur_id', user.id)
       .order('created_at', { ascending: false })
@@ -33,7 +33,7 @@ export default function MesAnnoncesPage() {
         else setAnnonces((data || []) as Logement[])
         setLoading(false)
       })
-  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.id, isAuthChecked]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) return (
     <div className="mes-annonces-screen">

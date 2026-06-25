@@ -26,7 +26,7 @@ const BOOST_OFFERS = [
 ]
 
 export default function BoostPage() {
-  const { user } = useAppStore()
+  const { user, isAuthChecked } = useAppStore()
   const router = useRouter()
   const supabase = createClient()
   const [logements, setLogements] = useState<LogementBoost[]>([])
@@ -34,7 +34,7 @@ export default function BoostPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user?.id) return
+    if (!isAuthChecked || !user?.id) return
     supabase.from('logements')
       .select('id, titre, boost_actif, boost_type, boost_expire_le, statut')
       .eq('bailleur_id', user.id)
@@ -45,7 +45,7 @@ export default function BoostPage() {
         if (list.length) setSelected(list[0].id)
         setLoading(false)
       })
-  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.id, isAuthChecked]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function activerBoost(type: string, prix: number) {
     if (!logements.length) { showToast('Publiez d\'abord une annonce', 'warning'); return }

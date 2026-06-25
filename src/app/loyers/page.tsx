@@ -58,7 +58,7 @@ function moisActuel() {
 }
 
 export default function LoyersPage() {
-  const { user } = useAppStore()
+  const { user, isAuthChecked } = useAppStore()
   const supabase = createClient()
   const [baux, setBaux] = useState<Bail[]>([])
   const [paiementsParBail, setPaiementsParBail] = useState<Record<string, Paiement[]>>({})
@@ -66,9 +66,9 @@ export default function LoyersPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!user?.id) return
+    if (!isAuthChecked || !user?.id) return
     load()
-  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.id, isAuthChecked]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function load() {
     const { data: bxData, error: bxErr } = await supabase
