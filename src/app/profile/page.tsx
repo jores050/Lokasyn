@@ -242,11 +242,11 @@ export default function ProfilePage() {
           </div>
         )}
         <ThemeToggle variant="row" />
-        <div className="profile-menu-item" style={{ cursor: 'pointer' }} onClick={() => showToast('Modification du profil — bientôt disponible', 'info')}>
+        <Link href="/profile/edit" className="profile-menu-item" style={{ textDecoration: 'none', color: 'inherit' }}>
           <span className="profile-menu-icon"><Pencil size={20} /></span>
           <span className="profile-menu-label">Modifier mon profil</span>
           <span className="profile-menu-arrow">›</span>
-        </div>
+        </Link>
         <div className="profile-menu-item danger" style={{ cursor: 'pointer' }} onClick={doSignOut}>
           <span className="profile-menu-icon"><LogOut size={20} /></span>
           <span className="profile-menu-label">Se déconnecter</span>
