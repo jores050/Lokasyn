@@ -101,6 +101,100 @@
 }
 
 /* ================================================================
+   DARK MODE TOKENS
+   ================================================================ */
+[data-theme="dark"] {
+  --color-bg:             #0D1F17;
+  --color-bg-alt:         #162B1E;
+  --color-ink:            #F0EBE3;
+  --color-ink-soft:       #A8B8A0;
+  --color-ink-faint:      #6B7F6E;
+
+  /* Vert — plus clair pour tenir le contraste sur fond sombre */
+  --color-green:          #4CAF50;
+  --color-green-deep:     #388E3C;
+  --color-green-tint:     rgba(76, 175, 80, 0.14);
+  --color-green-mid:      #2DB860;
+
+  /* Terre cuite */
+  --color-clay:           #D4763A;
+  --color-clay-tint:      rgba(212, 118, 58, 0.14);
+  --color-clay-deep:      #BF5F28;
+
+  /* Tints sémantiques */
+  --color-gold-tint:      rgba(201, 154, 62, 0.15);
+  --color-red-tint:       rgba(178, 58, 46, 0.22);
+
+  /* Bordures (sur fond sombre, rgba sur encre claire) */
+  --color-border:         rgba(240, 235, 227, 0.10);
+  --color-border-strong:  rgba(240, 235, 227, 0.22);
+
+  /* Surfaces — remplace le blanc pour les cartes, feuilles, nav */
+  --color-white:          #1C3526;
+
+  /* Ombres plus profondes */
+  --shadow-sm:    0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-md:    0 2px 8px rgba(0, 0, 0, 0.40), 0 1px 2px rgba(0, 0, 0, 0.20);
+  --shadow-lg:    0 8px 24px rgba(0, 0, 0, 0.50), 0 2px 6px rgba(0, 0, 0, 0.30);
+  --shadow-focus: 0 0 0 3px rgba(76, 175, 80, 0.30);
+}
+
+/* Texte sur éléments verts (boutons primaires, badges) : reste lisible */
+[data-theme="dark"] .btn-primary,
+[data-theme="dark"] .sidebar-publish-btn,
+[data-theme="dark"] .btn--primary {
+  color: #0D1F17;
+}
+
+/* Messages envoyés — texte sombre sur vert clair */
+[data-theme="dark"] .msg--me,
+[data-theme="dark"] .message-bubble.mine {
+  color: #0D1F17;
+}
+
+/* Overlay modal — plus sombre */
+[data-theme="dark"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+/* Transition douce au changement de thème */
+body,
+.sidebar-nav,
+.bottom-nav,
+.card,
+.listing-card,
+.bottom-sheet,
+.modal-sheet,
+.chat-col__header,
+.chat-col__composer,
+.conversations-col,
+.profile-menu,
+.profile-menu-item,
+.profile-header,
+.profile-stats {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Bouton toggle thème (dans sidebar et autres) */
+.theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: none;
+  border: none;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+.theme-toggle-btn:hover {
+  background: var(--color-bg-alt);
+  color: var(--color-ink);
+}
+
+/* ================================================================
    RESET
    ================================================================ */
 *, *::before, *::after {

@@ -8,6 +8,7 @@ import {
   Zap, CreditCard, Heart, MessageCircle, Pencil, LogOut,
   BadgeCheck, Star, CheckCircle, ShieldCheck, Bell,
 } from 'lucide-react'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { createClient } from '@/lib/supabase/client'
 import { useAppStore } from '@/lib/store'
 import { initiales, avatarColor, formatFCFA } from '@/lib/utils'
@@ -231,6 +232,7 @@ export default function ProfilePage() {
             {permission === 'granted' && <span style={{ color: 'var(--green)', fontSize: '1.1rem' }}>✓</span>}
           </div>
         )}
+        <ThemeToggle variant="row" />
         <div className="profile-menu-item" style={{ cursor: 'pointer' }} onClick={() => showToast('Modification du profil — bientôt disponible', 'info')}>
           <span className="profile-menu-icon"><Pencil size={20} /></span>
           <span className="profile-menu-label">Modifier mon profil</span>

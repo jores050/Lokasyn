@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, Search, MessageCircle, User, PlusCircle, Heart } from 'lucide-react'
 import { useAppStore } from '@/lib/store'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
 const NAV_ITEMS = [
   { route: '/',         icon: Home,          label: 'Accueil' },
@@ -54,6 +55,9 @@ export function Sidebar() {
           <span className="sidebar-nav-icon"><Heart size={18} strokeWidth={1.75} /></span>
           <span className="sidebar-nav-label">Favoris</span>
         </Link>
+        <div style={{ padding: '8px 12px 0' }}>
+          <ThemeToggle variant="icon" />
+        </div>
       </div>
     </nav>
   )
