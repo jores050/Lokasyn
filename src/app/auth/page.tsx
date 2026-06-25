@@ -58,7 +58,17 @@ function AuthContent() {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     setLoading(false)
 
-    if (error) { setError('login', error.message); return }
+    if (error) {
+      const msg = error.message || ''
+      if (msg.toLowerCase().includes('email not confirmed') || msg.toLowerCase().includes('not confirmed')) {
+        setError('login', `__EMAIL_NOT_CONFIRMED__:${email}`)
+      } else if (msg.toLowerCase().includes('invalid login') || msg.toLowerCase().includes('invalid credentials') || error.status === 400) {
+        setError('login', 'Email ou mot de passe incorrect.')
+      } else {
+        setError('login', msg)
+      }
+      return
+    }
     if (data.user) await afterAuth(data.user.id)
   }
 
@@ -110,10 +120,9 @@ function AuthContent() {
       setLoading(false)
       await afterAuth(data.user.id)
     } else {
-      // Email confirm activé → attendre la vérification
+      // Email confirm activé → page d'attente dédiée
       setLoading(false)
-      showToast('Vérifiez votre email — un lien de confirmation vous a été envoyé', 'success', 8000)
-      setView('login')
+      router.push(`/auth/attente-email?email=${encodeURIComponent(email)}`)
     }
   }
 
@@ -265,7 +274,19 @@ function AuthContent() {
                 Mot de passe oublié ?
               </a>
             </div>
-            {errors.login && <span className="form-error show" style={{ textAlign: 'center' }}>{errors.login}</span>}
+            {errors.login && errors.login.startsWith('__EMAIL_NOT_CONFIRMED__:') ? (
+              <div className="form-error show" style={{ textAlign: 'center' }}>
+                Votre email n&apos;est pas encore confirmé.{' '}
+                <a
+                  onClick={() => router.push(`/auth/attente-email?email=${encodeURIComponent(errors.login.replace('__EMAIL_NOT_CONFIRMED__:', ''))}`)}
+                  style={{ textDecoration: 'underline', cursor: 'pointer' }}
+                >
+                  Renvoyer le lien
+                </a>
+              </div>
+            ) : errors.login ? (
+              <span className="form-error show" style={{ textAlign: 'center' }}>{errors.login}</span>
+            ) : null}
             <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
               {loading ? '...' : 'Se connecter'}
             </button>
