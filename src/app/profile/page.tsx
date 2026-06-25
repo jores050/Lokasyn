@@ -53,10 +53,18 @@ export default function ProfilePage() {
       ])
       setStats({ logements: nLog || 0, loues: nLoues || 0 })
     } else {
-      const { data: bail } = await supabase
-        .from('baux').select('id, loyer_mensuel, date_debut')
-        .eq('locataire_id', user.id).eq('statut', 'actif')
-        .order('created_at', { ascending: false }).limit(1).single()
+      // TODO: créer la table baux (colonnes: id, locataire_id, statut, loyer_mensuel, date_debut, created_at)
+      // La requête ci-dessous retourne 406 tant que la table n'existe pas en prod
+      let bail = null
+      try {
+        const { data } = await supabase
+          .from('baux').select('id, loyer_mensuel, date_debut')
+          .eq('locataire_id', user.id).eq('statut', 'actif')
+          .order('created_at', { ascending: false }).limit(1).maybeSingle()
+        bail = data
+      } catch {
+        // table absente — silencieux
+      }
       setStats({ bail: bail || null })
     }
     setLoading(false)
